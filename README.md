@@ -17,6 +17,7 @@
 - 💾 **智能缓存** - 根据域名到期时间动态调整缓存策略
 - 📜 **查询历史** - 自动保存，点击即可快速查询
 - ⚡ **SEO 友好** - 服务端注入 SEO 配置
+- 🐳 **Docker 支持** - 一键部署，支持 Docker 和 docker-compose
 
 ## 快速开始
 
@@ -39,6 +40,48 @@ pnpm dev
 ```bash
 pnpm build
 pnpm start
+```
+
+### Docker 部署
+
+#### 构建镜像
+
+```bash
+# 构建镜像
+docker build -t whois-lookup:latest .
+
+# 或使用 docker-compose
+docker-compose build
+```
+
+#### 运行容器
+
+```bash
+# 使用 docker run
+docker run -d \
+  --name whois-lookup \
+  -p 5000:5000 \
+  --restart unless-stopped \
+  whois-lookup:latest
+
+# 或使用 docker-compose
+docker-compose up -d
+```
+
+#### 查看日志
+
+```bash
+docker logs -f whois-lookup
+```
+
+#### 停止服务
+
+```bash
+# docker run
+docker stop whois-lookup && docker rm whois-lookup
+
+# docker-compose
+docker-compose down
 ```
 
 ## 项目结构
@@ -67,6 +110,8 @@ pnpm start
 ├── index.html            # 入口 HTML
 ├── admin.html            # 管理后台 HTML
 ├── docs.html            # API 文档 HTML
+├── Dockerfile           # Docker 镜像构建文件
+├── docker-compose.yml   # Docker Compose 配置
 └── vite.config.ts       # Vite 配置
 ```
 

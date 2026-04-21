@@ -38,10 +38,30 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 ├── index.html         # 入口 HTML
 ├── admin.html         # 管理后台 HTML
 ├── docs.html          # API 文档 HTML
+├── Dockerfile         # Docker 镜像构建文件
+├── docker-compose.yml # Docker Compose 配置
 ├── package.json       # 项目依赖管理
 ├── tsconfig.json      # TypeScript 配置
 ├── vite.config.ts     # Vite 配置（含 SEO 插件）
 └── .coze              # Coze 部署配置
+```
+
+## Docker 部署
+
+### 构建镜像
+
+```bash
+docker build -t whois-lookup:latest .
+```
+
+### 运行容器
+
+```bash
+# 使用 docker run
+docker run -d --name whois-lookup -p 5000:5000 whois-lookup:latest
+
+# 使用 docker-compose
+docker-compose up -d
 ```
 
 ## SEO 服务端注入
