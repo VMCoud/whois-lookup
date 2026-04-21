@@ -118,8 +118,8 @@ function queryWhois(domain: string, options: Record<string, unknown>): Promise<s
 /**
  * 解析 WHOIS 文本，提取关键信息
  */
-function parseWhoisText(text: string): Record<string, string> {
-  const parsed: Record<string, string> = {};
+function parseWhoisText(text: string): Record<string, string | string[]> {
+  const parsed: Record<string, string | string[]> = {};
   const lines = text.split('\n');
 
   for (const line of lines) {
@@ -133,6 +133,11 @@ function parseWhoisText(text: string): Record<string, string> {
     if (match) {
       const key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
       const value = match[2].trim();
+
+      // 跳过联系方式等隐私信息
+      if (['e-mail', 'email', 'phone', 'fax'].some(k => key.includes(k))) {
+        continue;
+      }
 
       // 如果已有相同 key，转换为数组
       if (parsed[key] !== undefined) {

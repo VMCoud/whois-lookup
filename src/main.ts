@@ -7,7 +7,7 @@ interface WhoisResponse {
   success: boolean;
   domain: string;
   raw?: string;
-  parsed?: Record<string, string>;
+  parsed?: Record<string, string | string[]>;
   error?: string;
   queriedAt?: string;
 }
@@ -578,54 +578,178 @@ function displayResults(data: WhoisResponse): void {
 
   // Display parsed info
   if (data.parsed && Object.keys(data.parsed).length > 0) {
-    const importantFields = [
-      { key: 'domain_name', label: '域名' },
-      { key: 'domain__name', label: '域名' },
-      { key: 'registrar', label: '注册商' },
-      { key: 'creation_date', label: '创建日期' },
-      { key: 'created_date', label: '创建日期' },
-      { key: 'expiration_date', label: '过期日期' },
-      { key: 'expiry_date', label: '过期日期' },
-      { key: 'updated_date', label: '更新日期' },
-      { key: 'modified_date', label: '修改日期' },
-      { key: 'name_server', label: 'DNS 服务器' },
-      { key: 'name_servers', label: 'DNS 服务器' },
-      { key: 'nameserver', label: 'DNS 服务器' },
-      { key: 'nameservers', label: 'DNS 服务器' },
-      { key: 'status', label: '状态' },
-      { key: 'domain_status', label: '域名状态' },
-      { key: 'registrant', label: '注册人' },
-      { key: 'registrant_organization', label: '注册组织' },
-      { key: 'admin', label: '管理员' },
-      { key: 'admin_name', label: '管理员姓名' },
-      { key: 'tech', label: '技术联系' },
-      { key: 'tech_name', label: '技术联系人' },
+    const parsed = data.parsed;
+    let html = '';
+
+    // ===== 域名基础信息 =====
+    html += `<div class="col-span-2 mb-2"><h3 class="text-sm font-semibold text-cyan-400 border-b border-slate-700 pb-1">域名基础信息</h3></div>`;
+
+    const basicFields: Array<[string, string, string]> = [
+      ['domain_name', '域名', 'domain__name'],
+      ['registry_domain_id', '注册局 ID'],
+      ['registrar_whois_server', 'WHOIS 服务器'],
+      ['registrar_url', '注册商官网'],
+      ['creation_date', '创建时间', 'created_date'],
+      ['expiration_date', '到期时间', 'expiry_date', 'registry_expiry_date'],
+      ['updated_date', '更新时间', 'last_updated', 'modified_date'],
     ];
 
-    let html = '';
-    for (const field of importantFields) {
-      const value = data.parsed[field.key];
+    for (const [key, label, ...altKeys] of basicFields) {
+      const value = (parsed[key] as string) || (altKeys.length > 0 ? (parsed[altKeys[0]] as string) : null);
       if (value) {
-        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+        html += createFieldCard(label, formatValue(value));
+      }
+    }
+
+    // ===== 注册商信息 =====
+    html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-purple-400 border-b border-slate-700 pb-1">注册商信息</h3></div>`;
+
+    const registrarFields: Array<[string, string]> = [
+      ['registrar', '注册商'],
+      ['registrar_iana_id', 'IANA 编号'],
+      ['registrar_abuse_contact_email', '滥用投诉邮箱'],
+      ['registrar_abuse_contact_phone', '滥用投诉电话'],
+    ];
+
+    for (const [key, label] of registrarFields) {
+      const value = parsed[key];
+      if (value) {
+        html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
+      }
+    }
+
+    // ===== 域名状态 =====
+    const statusKeys = ['domain_status', 'status'];
+    const statuses: string[] = [];
+    for (const key of statusKeys) {
+      const value = parsed[key];
+      if (value) {
+        if (Array.isArray(value)) {
+          statuses.push(...value);
+        } else {
+          statuses.push(value);
+        }
+      }
+    }
+
+    if (statuses.length > 0) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-amber-400 border-b border-slate-700 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
+      for (const status of statuses) {
+        const statusClass = status.includes('Prohibited') ? 'bg-red-900/40 border-red-700' : 'bg-slate-900/30 border-slate-700';
+        const statusText = status.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:text-blue-300">查看详情</a>');
         html += `
-          <div class="bg-slate-900/30 rounded-lg p-4">
-            <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">${field.label}</div>
-            <div class="text-white font-medium break-all">${escapeHtml(displayValue)}</div>
+          <div class="col-span-2 ${statusClass} border rounded-lg p-3">
+            <div class="text-xs text-slate-400 uppercase tracking-wide mb-1">锁定状态</div>
+            <div class="text-sm text-white">${statusText}</div>
           </div>
         `;
       }
     }
 
-    // Add other fields if important fields are empty
-    if (!html) {
-      for (const [key, value] of Object.entries(data.parsed)) {
-        const displayValue = Array.isArray(value) ? value.join(', ') : value;
+    // ===== DNS 服务器 =====
+    const nsKeys = ['name_server', 'name_servers', 'nameserver', 'nameservers', 'nserver'];
+    const nameServers: string[] = [];
+    for (const key of nsKeys) {
+      const value = parsed[key];
+      if (value) {
+        if (Array.isArray(value)) {
+          nameServers.push(...value);
+        } else {
+          nameServers.push(value);
+        }
+      }
+    }
+
+    if (nameServers.length > 0) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-green-400 border-b border-slate-700 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
+      for (const ns of nameServers) {
         html += `
-          <div class="bg-slate-900/30 rounded-lg p-4">
-            <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">${formatKey(key)}</div>
-            <div class="text-white font-medium break-all">${escapeHtml(displayValue)}</div>
+          <div class="bg-slate-900/30 border border-slate-700 rounded-lg p-3">
+            <div class="text-white">${escapeHtml(ns.toUpperCase())}</div>
           </div>
         `;
+      }
+    }
+
+    // ===== DNS 安全 =====
+    const dnssecKeys = ['dnssec', 'ds_dadata', 'domain_id_ext_pinfo'];
+    let dnssecValue: string | null = null;
+    for (const key of dnssecKeys) {
+      if (parsed[key]) {
+        dnssecValue = Array.isArray(parsed[key]) ? parsed[key].join(', ') : (parsed[key] as string);
+        break;
+      }
+    }
+
+    if (dnssecValue) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-blue-400 border-b border-slate-700 pb-1">DNS 安全</h3></div>`;
+      const dnssecClass = dnssecValue.toLowerCase().includes('signed') ? 'bg-green-900/40 border-green-700' : 'bg-yellow-900/40 border-yellow-700';
+      const dnssecText = dnssecValue.toLowerCase().includes('signed') ? 'DNSSEC 已开启（已签名）' : 'DNSSEC 未开启（未签名）';
+      html += `
+        <div class="col-span-2 ${dnssecClass} border rounded-lg p-3">
+          <div class="text-xs text-slate-400 uppercase tracking-wide mb-1">DNSSEC 状态</div>
+          <div class="text-white">${dnssecText}</div>
+        </div>
+      `;
+    }
+
+    // ===== 持有人信息 =====
+    const registrantFields: Array<[string, string]> = [
+      ['registrant_name', '注册人姓名'],
+      ['registrant_organization', '注册组织'],
+      ['registrant_country', '注册国家'],
+      ['registrant_state', '注册省份'],
+      ['registrant_city', '注册城市'],
+      ['registrant_postal_code', '邮政编码'],
+      ['registrant_email', '注册人邮箱'],
+    ];
+
+    let hasRegistrant = registrantFields.some(([key]) => parsed[key]);
+    if (hasRegistrant) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-pink-400 border-b border-slate-700 pb-1">持有人信息</h3></div>`;
+      for (const [key, label] of registrantFields) {
+        const value = parsed[key];
+        if (value) {
+          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
+        }
+      }
+    }
+
+    // ===== 管理员信息 =====
+    const adminFields: Array<[string, string]> = [
+      ['admin_name', '管理员姓名'],
+      ['admin_organization', '管理员组织'],
+      ['admin_country', '管理员国家'],
+      ['admin_email', '管理员邮箱'],
+    ];
+
+    let hasAdmin = adminFields.some(([key]) => parsed[key]);
+    if (hasAdmin) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-orange-400 border-b border-slate-700 pb-1">管理员信息</h3></div>`;
+      for (const [key, label] of adminFields) {
+        const value = parsed[key];
+        if (value) {
+          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
+        }
+      }
+    }
+
+    // ===== 技术联系人 =====
+    const techFields: Array<[string, string]> = [
+      ['tech_name', '技术联系人'],
+      ['tech_organization', '技术组织'],
+      ['tech_country', '技术联系国家'],
+      ['tech_email', '技术联系邮箱'],
+    ];
+
+    let hasTech = techFields.some(([key]) => parsed[key]);
+    if (hasTech) {
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-indigo-400 border-b border-slate-700 pb-1">技术联系人</h3></div>`;
+      for (const [key, label] of techFields) {
+        const value = parsed[key];
+        if (value) {
+          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
+        }
       }
     }
 
@@ -636,6 +760,20 @@ function displayResults(data: WhoisResponse): void {
 
   // Display raw data
   rawData.textContent = data.raw || '无原始数据';
+}
+
+function createFieldCard(label: string, value: string): string {
+  return `
+    <div class="bg-slate-900/30 border border-slate-700 rounded-lg p-3">
+      <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">${label}</div>
+      <div class="text-white text-sm break-all">${value}</div>
+    </div>
+  `;
+}
+
+function formatValue(value: string): string {
+  // 格式化 URL 为可点击链接
+  return value.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:text-blue-300">$1</a>');
 }
 
 function formatKey(key: string): string {
