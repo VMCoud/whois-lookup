@@ -20,8 +20,11 @@ export interface SiteSettings {
   analyticsId: string;
   analyticsCode: string;
   
-  // 其他设置
+  // 页脚设置
   footerText: string;
+  icpNumber: string;
+  
+  // 其他设置
   customCss: string;
   customJs: string;
 }
@@ -41,6 +44,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   analyticsCode: '',
   
   footerText: 'Powered by php-whois',
+  icpNumber: '',
+  
   customCss: '',
   customJs: '',
 };

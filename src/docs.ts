@@ -410,12 +410,65 @@ export function initDocsApp(): void {
 
       <!-- Footer -->
       <footer class="border-t border-gray-200 bg-white py-4 mt-8">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs sm:text-sm text-gray-500">
+        <div id="footer-content" class="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs sm:text-sm text-gray-500">
           <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
         </div>
       </footer>
     </div>
   `;
+
+  // 加载网站设置
+  loadSiteSettings();
+}
+
+// 加载网站设置并更新页脚
+interface SiteSettings {
+  footerText: string;
+  icpNumber: string;
+}
+
+async function loadSiteSettings(): Promise<void> {
+  try {
+    const response = await fetch('/api/settings/public');
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      const footerContent = document.getElementById('footer-content');
+      if (footerContent) {
+        let html = '';
+        
+        // 页脚版权信息
+        if (data.data.footerText) {
+          const footerText = data.data.footerText;
+          if (footerText.includes('[') && footerText.includes('](')) {
+            const linkMatch = footerText.match(/\[([^\]]+)\]\(([^)]+)\)/);
+            if (linkMatch) {
+              html += `<p>${footerText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>')}</p>`;
+            }
+          } else {
+            html += `<p>${escapeHtml(footerText)}</p>`;
+          }
+        }
+        
+        // 备案号
+        if (data.data.icpNumber) {
+          html += `<p class="mt-1">${escapeHtml(data.data.icpNumber)}</p>`;
+        }
+        
+        if (html) {
+          footerContent.innerHTML = html;
+        }
+      }
+    }
+  } catch (error) {
+    // 忽略错误
+  }
+}
+
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // 初始化

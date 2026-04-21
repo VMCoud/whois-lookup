@@ -22,6 +22,7 @@ interface SiteSettings {
   analyticsId: string;
   analyticsCode: string;
   footerText: string;
+  icpNumber: string;
   customCss: string;
   customJs: string;
 }
@@ -403,6 +404,10 @@ function renderAdminPage(app: HTMLElement): void {
                   <label class="block text-sm font-medium text-gray-700 mb-2">页脚版权信息</label>
                   <input type="text" id="footer-text" placeholder="Powered by php-whois" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none" />
                 </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">备案号</label>
+                  <input type="text" id="icp-number" placeholder="如: 京ICP备XXXXXXXX号" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none" />
+                </div>
               </div>
             </div>
 
@@ -686,6 +691,7 @@ async function loadSettings(): Promise<void> {
       (document.getElementById('site-description') as HTMLTextAreaElement).value = s.siteDescription || '';
       (document.getElementById('site-keywords') as HTMLInputElement).value = s.siteKeywords || '';
       (document.getElementById('footer-text') as HTMLInputElement).value = s.footerText || '';
+      (document.getElementById('icp-number') as HTMLInputElement).value = (s as any).icpNumber || '';
       
       (document.getElementById('enable-seo') as HTMLInputElement).checked = s.enableSeo || false;
       (document.getElementById('seo-title') as HTMLInputElement).value = s.seoTitle || '';
@@ -726,6 +732,7 @@ async function saveSettings(): Promise<void> {
     siteDescription: (document.getElementById('site-description') as HTMLTextAreaElement).value,
     siteKeywords: (document.getElementById('site-keywords') as HTMLInputElement).value,
     footerText: (document.getElementById('footer-text') as HTMLInputElement).value,
+    icpNumber: (document.getElementById('icp-number') as HTMLInputElement).value,
     enableSeo: (document.getElementById('enable-seo') as HTMLInputElement).checked,
     seoTitle: (document.getElementById('seo-title') as HTMLInputElement).value,
     seoDescription: (document.getElementById('seo-description') as HTMLTextAreaElement).value,
