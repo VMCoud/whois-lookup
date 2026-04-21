@@ -1,4 +1,6 @@
-// WHOIS 查询 API 前端界面 - 亮色主题 + 移动端适配
+// WHOIS 查询 API 前端界面 - 亮色主题 + 移动端适配 + 多语言
+
+import { initI18n, t, getLocale } from './i18n';
 
 // API Key 存储在 localStorage
 let apiKey = localStorage.getItem('whois_api_key') || '';
@@ -35,44 +37,33 @@ const MAX_HISTORY_SIZE = 50;
 
 /**
  * 计算缓存过期时间
- * 根据域名到期时间动态调整：
- * - 到期时间 < 7 天：缓存 1 小时
- * - 到期时间 < 30 天：缓存 6 小时
- * - 到期时间 < 90 天：缓存 24 小时
- * - 到期时间 >= 90 天：缓存 7 天
- * - 缓存默认最大 30 天
  */
 function calculateCacheExpiry(parsed?: Record<string, string | string[]>): number {
   const now = Date.now();
-  const defaultExpiry = 7 * 24 * 60 * 60 * 1000; // 7天
+  const defaultExpiry = 7 * 24 * 60 * 60 * 1000;
 
   if (!parsed) {
     return defaultExpiry;
   }
 
-  // 尝试获取到期时间
   const expiryDate = parsed.expiration_date as string;
   if (expiryDate) {
-    let expiryMs: number;
     try {
-      // 尝试解析日期
       const expiryTime = new Date(expiryDate).getTime();
       if (isNaN(expiryTime)) {
         return defaultExpiry;
       }
-      expiryMs = expiryTime - now;
+      const expiryMs = expiryTime - now;
+      const dayMs = 24 * 60 * 60 * 1000;
+      if (expiryMs < 7 * dayMs) {
+        return 1 * 60 * 60 * 1000;
+      } else if (expiryMs < 30 * dayMs) {
+        return 6 * 60 * 60 * 1000;
+      } else if (expiryMs < 90 * dayMs) {
+        return 24 * 60 * 60 * 1000;
+      }
     } catch {
       return defaultExpiry;
-    }
-
-    // 根据剩余时间计算缓存
-    const dayMs = 24 * 60 * 60 * 1000;
-    if (expiryMs < 7 * dayMs) {
-      return 1 * 60 * 60 * 1000; // 1小时
-    } else if (expiryMs < 30 * dayMs) {
-      return 6 * 60 * 60 * 1000; // 6小时
-    } else if (expiryMs < 90 * dayMs) {
-      return 24 * 60 * 60 * 1000; // 1天
     }
   }
 
@@ -92,7 +83,6 @@ function getCache(domain: string): CacheItem | null {
 
     const item: CacheItem = JSON.parse(cached);
     if (Date.now() > item.expiresAt) {
-      // 缓存已过期，删除
       localStorage.removeItem(getCacheKey(domain));
       return null;
     }
@@ -115,12 +105,11 @@ function setCache(domain: string, data: WhoisResponse): void {
   try {
     localStorage.setItem(getCacheKey(domain), JSON.stringify(item));
   } catch {
-    // 存储满了，清理旧缓存
     cleanExpiredCache();
     try {
       localStorage.setItem(getCacheKey(domain), JSON.stringify(item));
     } catch {
-      // 还是存不下，忽略
+      // ignore
     }
   }
 }
@@ -152,11 +141,9 @@ function getHistory(): SearchHistoryItem[] {
 
 function setHistory(history: SearchHistoryItem[]): void {
   try {
-    // 限制历史记录数量
     const limited = history.slice(0, MAX_HISTORY_SIZE);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(limited));
   } catch {
-    // 存储满了，保留最近10条
     const limited = history.slice(0, 10);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(limited));
   }
@@ -164,9 +151,7 @@ function setHistory(history: SearchHistoryItem[]): void {
 
 function addToHistory(domain: string, success: boolean): void {
   const history = getHistory();
-  // 移除相同域名的旧记录
   const filtered = history.filter(h => h.domain.toLowerCase() !== domain.toLowerCase());
-  // 添加新记录到开头
   filtered.unshift({ domain: domain.toLowerCase(), timestamp: Date.now(), success });
   setHistory(filtered);
 }
@@ -175,14 +160,12 @@ function removeFromHistory(domain: string): void {
   const history = getHistory();
   const filtered = history.filter(h => h.domain.toLowerCase() !== domain.toLowerCase());
   setHistory(filtered);
-  // 清理对应的缓存
   localStorage.removeItem(getCacheKey(domain));
   renderHistory();
 }
 
 function clearAllHistory(): void {
   const history = getHistory();
-  // 清理所有缓存
   for (const item of history) {
     localStorage.removeItem(getCacheKey(item.domain));
   }
@@ -202,7 +185,7 @@ async function initApiKey(): Promise<void> {
         localStorage.setItem('whois_api_key', apiKey);
       }
     } catch (err) {
-      console.error('获取 API Key 失败:', err);
+      console.error(t('errGetApiKey'), err);
     }
   }
 }
@@ -213,6 +196,7 @@ function renderHistory(): void {
   const historyList = document.getElementById('history-list');
   const historySection = document.getElementById('history-section');
   const historyCount = document.getElementById('history-count');
+  const clearBtn = document.getElementById('clear-history-btn');
 
   if (!historyList || !historySection) return;
 
@@ -227,10 +211,17 @@ function renderHistory(): void {
   if (historyCount) {
     historyCount.textContent = String(history.length);
   }
+  
+  // 更新清除按钮文字
+  const clearBtnText = clearBtn?.querySelector('span');
+  if (clearBtnText) {
+    clearBtnText.textContent = t('clearHistory');
+  }
 
+  const locale = getLocale();
   historyList.innerHTML = history.map(item => {
     const date = new Date(item.timestamp);
-    const timeStr = date.toLocaleString('zh-CN', {
+    const timeStr = date.toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
@@ -247,9 +238,9 @@ function renderHistory(): void {
           <div class="text-xs text-gray-400 mt-0.5 ml-3.5">${timeStr}</div>
         </div>
         <button
-          onclick="removeFromHistory('${escapeHtml(item.domain)}')"
+          onclick="handleDeleteHistory('${escapeHtml(item.domain)}')"
           class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors ml-2 opacity-0 group-hover:opacity-100"
-          title="删除"
+          title="${t('delete')}"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -263,6 +254,11 @@ function renderHistory(): void {
 // ========== 主应用初始化 ==========
 
 export async function initApp(): Promise<void> {
+  // 初始化多语言
+  initI18n();
+  const locale = getLocale();
+  const isZh = locale === 'zh-CN';
+
   const app = document.getElementById('app');
 
   if (!app) {
@@ -282,28 +278,27 @@ export async function initApp(): Promise<void> {
               </svg>
             </div>
             <div>
-              <h1 class="text-base sm:text-xl font-bold text-gray-900">WHOIS Lookup</h1>
-              <p class="text-xs text-gray-500 hidden sm:block">域名查询服务</p>
+              <h1 class="text-base sm:text-xl font-bold text-gray-900">${t('pageTitle')}</h1>
+              <p class="text-xs text-gray-500 hidden sm:block">${t('pageSubtitle')}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <!-- 清除历史按钮 -->
             <button
               id="clear-history-btn"
-              onclick="clearAllHistory()"
+              onclick="handleClearHistory()"
               class="text-xs sm:text-sm text-gray-500 hover:text-red-600 transition-colors flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg hover:bg-red-50"
-              title="清除所有历史"
+              title="${t('clearHistory')}"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              <span class="hidden sm:inline">清除历史</span>
+              <span class="hidden sm:inline">${t('clearHistory')}</span>
             </button>
             <a href="/docs.html" class="text-xs sm:text-sm text-gray-600 hover:text-indigo-600 transition-colors flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-md hover:bg-gray-100 sm:hover:bg-transparent">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
-              <span class="hidden sm:inline">API 文档</span>
+              <span class="hidden sm:inline">${t('apiDocs')}</span>
             </a>
           </div>
         </div>
@@ -314,9 +309,11 @@ export async function initApp(): Promise<void> {
         <!-- Search Section -->
         <div class="text-center mb-6 sm:mb-12">
           <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            域名 WHOIS 查询
+            ${isZh ? '域名 WHOIS 查询' : 'Domain WHOIS Lookup'}
           </h2>
-          <p class="text-gray-500 text-sm sm:text-base mb-6 sm:mb-8 px-2">输入域名查看详细的注册信息和 WHOIS 数据</p>
+          <p class="text-gray-500 text-sm sm:text-base mb-6 sm:mb-8 px-2">
+            ${isZh ? '输入域名查看详细的注册信息和 WHOIS 数据' : 'Enter a domain to view detailed registration and WHOIS information'}
+          </p>
 
           <!-- Search Form -->
           <div class="max-w-2xl mx-auto">
@@ -326,7 +323,7 @@ export async function initApp(): Promise<void> {
                   type="text"
                   id="domain-input"
                   name="domain"
-                  placeholder="输入域名，例如: google.com"
+                  placeholder="${t('searchPlaceholder')}"
                   autocomplete="off"
                   list="history-suggestions"
                   class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-base sm:text-lg shadow-sm"
@@ -341,7 +338,7 @@ export async function initApp(): Promise<void> {
                 <svg id="search-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <span id="search-text">查询</span>
+                <span id="search-text">${t('query')}</span>
               </button>
             </form>
           </div>
@@ -354,7 +351,7 @@ export async function initApp(): Promise<void> {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              查询历史
+              ${t('searchHistory')}
               <span id="history-count" class="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">0</span>
             </h3>
           </div>
@@ -369,7 +366,7 @@ export async function initApp(): Promise<void> {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <span>数据来自缓存</span>
+              <span>${t('fromCache')}</span>
             </div>
           </div>
 
@@ -380,7 +377,7 @@ export async function initApp(): Promise<void> {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span class="text-sm sm:text-base">正在查询 WHOIS 信息...</span>
+              <span class="text-sm sm:text-base">${t('querying')}</span>
             </div>
           </div>
 
@@ -390,7 +387,7 @@ export async function initApp(): Promise<void> {
               <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <h3 class="text-base sm:text-lg font-semibold text-red-600 mb-2">查询失败</h3>
+              <h3 class="text-base sm:text-lg font-semibold text-red-600 mb-2">${t('queryFailed')}</h3>
               <p id="error-message" class="text-red-500 text-sm"></p>
             </div>
           </div>
@@ -421,7 +418,7 @@ export async function initApp(): Promise<void> {
                     <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
-                    查看原始 WHOIS 数据
+                    ${t('viewRawData')}
                   </summary>
                   <div class="mt-4">
                     <pre id="raw-data" class="bg-gray-100 rounded-lg p-3 sm:p-4 text-xs text-gray-600 overflow-x-auto max-h-64 sm:max-h-96 overflow-y-auto font-mono whitespace-pre-wrap break-all"></pre>
@@ -436,13 +433,13 @@ export async function initApp(): Promise<void> {
       <!-- Footer -->
       <footer class="border-t border-gray-200 bg-white py-3 sm:py-4 mt-auto">
         <div id="footer-content" class="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs sm:text-sm text-gray-500">
-          <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
+          <p>${t('poweredBy')} <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
         </div>
       </footer>
     </div>
   `;
 
-  // Initialize (等待 API Key 初始化完成)
+  // Initialize
   await initApiKey();
   initFormHandling();
   loadSiteSettings();
@@ -450,9 +447,15 @@ export async function initApp(): Promise<void> {
   updateDatalist();
 
   // 绑定全局函数
-  (window as unknown as { removeFromHistory: typeof removeFromHistory; clearAllHistory: typeof clearAllHistory; handleHistoryClick: (domain: string) => void }).removeFromHistory = removeFromHistory;
-  (window as unknown as { removeFromHistory: typeof removeFromHistory; clearAllHistory: typeof clearAllHistory; handleHistoryClick: (domain: string) => void }).clearAllHistory = clearAllHistory;
-  (window as unknown as { removeFromHistory: typeof removeFromHistory; clearAllHistory: typeof clearAllHistory; handleHistoryClick: (domain: string) => void }).handleHistoryClick = handleHistoryClick;
+  (window as unknown as Record<string, unknown>).removeFromHistory = undefined;
+  (window as unknown as Record<string, unknown>).clearAllHistory = undefined;
+  (window as unknown as Record<string, unknown>).handleHistoryClick = undefined;
+  (window as unknown as Record<string, unknown>).handleDeleteHistory = undefined;
+  (window as unknown as Record<string, unknown>).handleClearHistory = undefined;
+  
+  (window as unknown as { handleDeleteHistory: (domain: string) => void }).handleDeleteHistory = removeFromHistory;
+  (window as unknown as { handleClearHistory: () => void }).handleClearHistory = clearAllHistory;
+  (window as unknown as { handleHistoryClick: (domain: string) => void }).handleHistoryClick = handleHistoryClick;
 }
 
 // 点击历史记录条目
@@ -491,7 +494,6 @@ function initFormHandling(): void {
   const successState = document.getElementById('success-state')!;
   const errorMessage = document.getElementById('error-message')!;
 
-  // 确保有 API Key
   async function ensureApiKey(): Promise<boolean> {
     if (!apiKey) {
       try {
@@ -503,7 +505,7 @@ function initFormHandling(): void {
           return true;
         }
       } catch {
-        console.error('获取 API Key 失败');
+        console.error(t('errGetApiKey'));
         return false;
       }
     }
@@ -531,16 +533,15 @@ function initFormHandling(): void {
     searchBtn.disabled = true;
     searchIcon.innerHTML = `<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>`;
     searchIcon.classList.add('animate-spin');
-    searchText.textContent = '查询中...';
+    searchText.textContent = t('querying');
 
-    // 确保有 API Key
     const hasKey = await ensureApiKey();
     if (!hasKey) {
       loadingState.classList.add('hidden');
       errorState.classList.remove('hidden');
-      errorMessage.textContent = '获取 API Key 失败，请刷新页面重试';
+      errorMessage.textContent = t('errGetApiKey');
       searchBtn.disabled = false;
-      searchText.textContent = '查询';
+      searchText.textContent = t('query');
       return;
     }
 
@@ -554,7 +555,7 @@ function initFormHandling(): void {
       searchBtn.disabled = false;
       searchIcon.classList.remove('animate-spin');
       searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
-      searchText.textContent = '查询';
+      searchText.textContent = t('query');
       return;
     }
 
@@ -568,7 +569,7 @@ function initFormHandling(): void {
 
       if (!data.success) {
         errorState.classList.remove('hidden');
-        errorMessage.textContent = data.error || '未知错误';
+        errorMessage.textContent = data.error || t('unknownError');
         addToHistory(domain, false);
 
         if (response.status === 401) {
@@ -579,25 +580,23 @@ function initFormHandling(): void {
         successState.classList.remove('hidden');
         displayResults(data);
         addToHistory(domain, true);
-        // 保存到缓存
         setCache(domain, data);
       }
     } catch (error) {
       loadingState.classList.add('hidden');
       errorState.classList.remove('hidden');
-      errorMessage.textContent = error instanceof Error ? error.message : '网络请求失败';
+      errorMessage.textContent = error instanceof Error ? error.message : t('networkError');
       addToHistory(domain, false);
     } finally {
       searchBtn.disabled = false;
       searchIcon.classList.remove('animate-spin');
       searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
-      searchText.textContent = '查询';
+      searchText.textContent = t('query');
       updateDatalist();
       renderHistory();
     }
   });
 
-  // 回车键支持
   domainInput.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       form.dispatchEvent(new Event('submit'));
@@ -616,60 +615,61 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
 
   resultDomain.textContent = data.domain;
 
-  // 显示查询时间
   if (data.queriedAt) {
-    resultTime.textContent = new Date(data.queriedAt).toLocaleString('zh-CN');
+    const locale = getLocale();
+    resultTime.textContent = new Date(data.queriedAt).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US');
   } else {
     resultTime.textContent = '';
   }
 
-  // 显示缓存信息
   if (data.fromCache && cachedAt && expiresAt) {
     cacheInfo.classList.remove('hidden');
     const remainingMs = expiresAt - Date.now();
     const remainingHours = Math.floor(remainingMs / (60 * 60 * 1000));
     const remainingMins = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
     if (remainingHours > 0) {
-      cacheInfo.textContent = `缓存剩余 ${remainingHours}小时${remainingMins > 0 ? remainingMins + '分钟' : ''}`;
+      cacheInfo.textContent = `${t('cacheRemaining')} ${remainingHours}${getLocale() === 'zh-CN' ? '小时' : 'h'}${remainingMins > 0 ? remainingMins + (getLocale() === 'zh-CN' ? '分钟' : 'm') : ''}`;
     } else {
-      cacheInfo.textContent = `缓存剩余 ${remainingMins}分钟`;
+      cacheInfo.textContent = `${t('cacheRemaining')} ${remainingMins}${getLocale() === 'zh-CN' ? '分钟' : 'min'}`;
     }
   } else {
     cacheInfo.classList.add('hidden');
   }
+
+  const isZh = getLocale() === 'zh-CN';
 
   if (data.parsed && Object.keys(data.parsed).length > 0) {
     const parsed = data.parsed;
     let html = '';
 
     // 域名基础信息
-    html += `<div class="col-span-1 sm:col-span-2 mb-2"><h3 class="text-xs sm:text-sm font-semibold text-blue-600 border-b border-gray-200 pb-1">域名基础信息</h3></div>`;
+    html += `<div class="col-span-1 sm:col-span-2 mb-2"><h3 class="text-xs sm:text-sm font-semibold text-blue-600 border-b border-gray-200 pb-1">${t('domainInfo')}</h3></div>`;
 
-    const basicFields: Array<[string, string, string?]> = [
-      ['domain_name', '域名', 'domain__name'],
-      ['registry_domain_id', '注册局 ID'],
-      ['registrar_whois_server', 'WHOIS 服务器'],
-      ['registrar_url', '注册商官网'],
-      ['creation_date', '创建时间', 'created_date'],
-      ['expiration_date', '到期时间', 'expiry_date', 'registry_expiry_date'],
-      ['updated_date', '更新时间', 'last_updated', 'modified_date'],
+    const basicFields: Array<[string, string]> = [
+      ['domain_name', t('fieldDomainName')],
+      ['registry_domain_id', t('fieldRegistryDomainId')],
+      ['registrar_whois_server', t('fieldWhoisServer')],
+      ['registrar_url', t('fieldRegistrarWebsite')],
+      ['creation_date', t('fieldCreationDate')],
+      ['expiration_date', t('fieldExpirationDate')],
+      ['updated_date', t('fieldUpdatedDate')],
     ];
 
-    for (const [key, label, ...altKeys] of basicFields) {
-      const value = (parsed[key] as string) || (altKeys.length > 0 ? (parsed[altKeys[0]] as string) : null);
+    for (const [key, label] of basicFields) {
+      const value = parsed[key];
       if (value) {
         html += createFieldCard(label, formatValue(value));
       }
     }
 
     // 注册商信息
-    html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-purple-600 border-b border-gray-200 pb-1">注册商信息</h3></div>`;
+    html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-purple-600 border-b border-gray-200 pb-1">${t('registrarInfo')}</h3></div>`;
 
     const registrarFields: Array<[string, string]> = [
-      ['registrar', '注册商'],
-      ['registrar_iana_id', 'IANA 编号'],
-      ['registrar_abuse_contact_email', '滥用投诉邮箱'],
-      ['registrar_abuse_contact_phone', '滥用投诉电话'],
+      ['registrar', t('fieldRegistrar')],
+      ['registrar_iana_id', t('fieldRegistrarIanaId')],
+      ['registrar_abuse_contact_email', t('fieldAbuseEmail')],
+      ['registrar_abuse_contact_phone', t('fieldAbusePhone')],
     ];
 
     for (const [key, label] of registrarFields) {
@@ -680,9 +680,9 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
     }
 
     // 域名状态
-    const statusKeys = ['domain_status', 'status'];
+    const nsKeys = ['domain_status', 'status'];
     const statuses: string[] = [];
-    for (const key of statusKeys) {
+    for (const key of nsKeys) {
       const value = parsed[key];
       if (value) {
         if (Array.isArray(value)) {
@@ -694,13 +694,13 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
     }
 
     if (statuses.length > 0) {
-      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-amber-600 border-b border-gray-200 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-amber-600 border-b border-gray-200 pb-1">${t('securityStatus')}（${statuses.length}${t('securityLockCount')}）</h3></div>`;
       for (const status of statuses) {
         const statusClass = status.includes('Prohibited') ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200';
-        const statusText = status.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">查看详情</a>');
+        const statusText = status.replace(/(https?:\/\/[^\s]+)/g, `<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">${isZh ? '查看详情' : 'View details'}</a>`);
         html += `
           <div class="col-span-1 sm:col-span-2 ${statusClass} border rounded-lg p-3">
-            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">锁定状态</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">${t('statusLocked')}</div>
             <div class="text-sm text-gray-800 break-all">${statusText}</div>
           </div>
         `;
@@ -708,9 +708,9 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
     }
 
     // DNS 服务器
-    const nsKeys = ['name_server', 'name_servers', 'nameserver', 'nameservers', 'nserver'];
+    const dnsKeys = ['name_server', 'name_servers', 'nameserver', 'nameservers', 'nserver'];
     const nameServers: string[] = [];
-    for (const key of nsKeys) {
+    for (const key of dnsKeys) {
       const value = parsed[key];
       if (value) {
         if (Array.isArray(value)) {
@@ -722,7 +722,7 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
     }
 
     if (nameServers.length > 0) {
-      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-green-600 border-b border-gray-200 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-green-600 border-b border-gray-200 pb-1">${t('fieldNameServers')}（${nameServers.length}${t('nameServerCount')}）</h3></div>`;
       for (const ns of nameServers) {
         html += `
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
@@ -737,18 +737,18 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
     let dnssecValue: string | null = null;
     for (const key of dnssecKeys) {
       if (parsed[key]) {
-        dnssecValue = Array.isArray(parsed[key]) ? parsed[key].join(', ') : (parsed[key] as string);
+        dnssecValue = Array.isArray(parsed[key]) ? (parsed[key] as string[]).join(', ') : (parsed[key] as string);
         break;
       }
     }
 
     if (dnssecValue) {
-      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-indigo-600 border-b border-gray-200 pb-1">DNS 安全</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-indigo-600 border-b border-gray-200 pb-1">${t('dnsInfo')}</h3></div>`;
       const dnssecClass = dnssecValue.toLowerCase().includes('signed') ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
-      const dnssecText = dnssecValue.toLowerCase().includes('signed') ? 'DNSSEC 已开启（已签名）' : 'DNSSEC 未开启（未签名）';
+      const dnssecText = dnssecValue.toLowerCase().includes('signed') ? t('dnssecSigned') : t('dnssecUnsigned');
       html += `
         <div class="col-span-1 sm:col-span-2 ${dnssecClass} border rounded-lg p-3">
-          <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">DNSSEC 状态</div>
+          <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">${t('fieldDnsSec')}</div>
           <div class="text-gray-800 text-sm">${dnssecText}</div>
         </div>
       `;
@@ -756,29 +756,29 @@ function displayResults(data: WhoisResponse, cachedAt?: number, expiresAt?: numb
 
     // 持有人信息
     const registrantFields: Array<[string, string]> = [
-      ['registrant_name', '注册人姓名'],
-      ['registrant_organization', '注册组织'],
-      ['registrant_country', '注册国家'],
-      ['registrant_email', '注册人邮箱'],
+      ['registrant_name', t('fieldRegistrantName')],
+      ['registrant_organization', t('fieldRegistrantOrg')],
+      ['registrant_country', t('fieldRegistrantCountry')],
+      ['registrant_email', t('fieldRegistrantEmail')],
     ];
 
     const hasRegistrant = registrantFields.some(([key]) => parsed[key]);
     if (hasRegistrant) {
-      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">持有人信息</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">${t('registrantInfo')}</h3></div>`;
       for (const [key, label] of registrantFields) {
         const value = parsed[key];
         if (value) {
-          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
+          html += createFieldCard(label, formatValue(Array.isArray(value) ? (value as string[]).join(', ') : value));
         }
       }
     }
 
-    parsedInfo.innerHTML = html || '<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = html || `<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">${isZh ? '无法解析 WHOIS 数据' : 'Unable to parse WHOIS data'}</p>`;
   } else {
-    parsedInfo.innerHTML = '<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = `<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">${isZh ? '无法解析 WHOIS 数据' : 'Unable to parse WHOIS data'}</p>`;
   }
 
-  rawData.textContent = data.raw || '无原始数据';
+  rawData.textContent = data.raw || t('noRawData');
 }
 
 function createFieldCard(label: string, value: string): string {
@@ -790,8 +790,9 @@ function createFieldCard(label: string, value: string): string {
   `;
 }
 
-function formatValue(value: string): string {
-  return value.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>');
+function formatValue(value: string | string[]): string {
+  const str = Array.isArray(value) ? value.join(', ') : value;
+  return str.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>');
 }
 
 function escapeHtml(text: string): string {
@@ -824,7 +825,7 @@ function loadSiteSettings(): void {
           html += `<p>${escapeHtml(footerText)}</p>`;
         }
       } else {
-        html += `<p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>`;
+        html += `<p>${t('poweredBy')} <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>`;
       }
 
       if (config.icpNumber) {

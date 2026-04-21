@@ -37,7 +37,8 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 │   ├── index.css      # 全局样式
 │   ├── main.ts        # WHOIS 查询界面
 │   ├── admin.ts       # 管理后台界面
-│   └── docs.ts        # API 文档界面
+│   ├── docs.ts        # API 文档界面
+│   └── i18n.ts        # 多语言配置
 ├── index.html         # 入口 HTML
 ├── admin.html         # 管理后台 HTML
 ├── docs.html          # API 文档 HTML
@@ -236,6 +237,13 @@ Content-Type: application/json
 - 过期的 Key 将无法使用，需要续期或重新创建
 
 ## 前端功能
+
+### 多语言支持
+
+- 自动检测浏览器语言（`navigator.language`）
+- 支持简体中文 (`zh-CN`) 和 English (`en`)
+- 语言配置文件：`src/i18n.ts`
+- 使用 `t('key')` 函数获取翻译文本
 
 ### 搜索历史记录
 
