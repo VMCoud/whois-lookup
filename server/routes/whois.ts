@@ -173,12 +173,16 @@ function queryWhois(domain: string, options: Record<string, unknown>): Promise<s
     whoisLookup(domain, options, (err: Error | null, data: string) => {
       clearTimeout(timeout);
       if (err) {
-        // 优化错误信息
-        const errorMsg = err.message || '';
-        if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('ENOTFOUND')) {
-          reject(new Error(`WHOIS 服务器无响应，请稍后重试`));
+        // 统一提取错误信息（兼容 Error 对象和普通对象）
+        const errorMsg = err.message || (err as Record<string, unknown>).code as string || String(err);
+        
+        // 检查是否包含常见错误
+        if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('ENOTFOUND') || errorMsg.includes('EAI_AGAIN')) {
+          reject(new Error(`WHOIS 服务器连接超时，请稍后重试`));
         } else if (errorMsg.includes('ECONNREFUSED')) {
           reject(new Error(`WHOIS 服务器连接被拒绝`));
+        } else if (!errorMsg.trim()) {
+          reject(new Error(`WHOIS 查询失败，请稍后重试`));
         } else {
           reject(new Error(`WHOIS 查询失败: ${errorMsg}`));
         }

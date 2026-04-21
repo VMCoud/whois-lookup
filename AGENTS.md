@@ -233,6 +233,21 @@ Content-Type: application/json
 - 建议使用请求头方式，避免 Key 泄露在日志中
 - 过期的 Key 将无法使用，需要续期或重新创建
 
+## WHOIS 错误处理
+
+WHOIS 查询可能因多种原因失败，以下是错误类型和用户提示：
+
+| 错误类型 | 原因 | 用户提示 |
+|---------|------|---------|
+| ETIMEDOUT/timeout | WHOIS 服务器连接超时 | "WHOIS 服务器连接超时，请稍后重试" |
+| ENOTFOUND/EAI_AGAIN | DNS 解析失败 | "WHOIS 服务器无响应或 DNS 解析失败，请稍后重试" |
+| ECONNREFUSED | 服务器拒绝连接 | "WHOIS 服务器连接被拒绝" |
+| 空错误信息 | 未知错误 | "WHOIS 查询失败，请稍后重试" |
+
+**注意**：node-whois 库返回的错误对象使用 `code` 字段而非 `message` 字段，错误处理需兼容两种格式。
+
+**TLD 服务器映射**：部分 TLD（如 .site, .top, .vip 等）有专用的 WHOIS 服务器配置在 `getWhoisServer()` 函数中。
+
 ## 前端功能
 
 ### 多语言支持
