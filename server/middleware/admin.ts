@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import type { Request, Response, NextFunction } from 'express';
 
 // 后台管理员账户配置（通过环境变量配置）
 interface AdminConfig {
@@ -91,29 +92,27 @@ export function validateAdminLogin(username: string, password: string): { succes
  * 验证管理员认证（中间件）
  */
 export function adminAuth(req: Request, res: Response, next: NextFunction): void {
-  import('express').then(({ Request, Response, NextFunction }) => {
-    const token = (req.headers['x-admin-token'] as string) || req.query.adminToken as string;
+  const token = (req.headers['x-admin-token'] as string) || req.query.adminToken as string;
 
-    if (!token) {
-      res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-        message: '请先登录',
-      });
-      return;
-    }
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      error: 'Unauthorized',
+      message: '请先登录',
+    });
+    return;
+  }
 
-    if (!validateSession(token)) {
-      res.status(401).json({
-        success: false,
-        error: 'Session expired',
-        message: '会话已过期，请重新登录',
-      });
-      return;
-    }
+  if (!validateSession(token)) {
+    res.status(401).json({
+      success: false,
+      error: 'Session expired',
+      message: '会话已过期，请重新登录',
+    });
+    return;
+  }
 
-    next();
-  });
+  next();
 }
 
 // 清理过期会话

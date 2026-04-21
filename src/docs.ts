@@ -421,47 +421,40 @@ export function initDocsApp(): void {
   loadSiteSettings();
 }
 
-// 加载网站设置并更新页脚
+// 加载网站设置并更新页脚（使用服务端注入的配置）
 interface SiteSettings {
   footerText: string;
   icpNumber: string;
+  siteName?: string;
 }
 
-async function loadSiteSettings(): Promise<void> {
-  try {
-    const response = await fetch('/api/settings/public');
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      const footerContent = document.getElementById('footer-content');
-      if (footerContent) {
-        let html = '';
-        
-        // 页脚版权信息
-        if (data.data.footerText) {
-          const footerText = data.data.footerText;
-          if (footerText.includes('[') && footerText.includes('](')) {
-            const linkMatch = footerText.match(/\[([^\]]+)\]\(([^)]+)\)/);
-            if (linkMatch) {
-              html += `<p>${footerText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>')}</p>`;
-            }
-          } else {
-            html += `<p>${escapeHtml(footerText)}</p>`;
-          }
-        }
-        
-        // 备案号
-        if (data.data.icpNumber) {
-          html += `<p class="mt-1">${escapeHtml(data.data.icpNumber)}</p>`;
-        }
-        
-        if (html) {
-          footerContent.innerHTML = html;
+function loadSiteSettings(): void {
+  const config = (window as { __SITE_CONFIG__?: SiteSettings }).__SITE_CONFIG__;
+  
+  if (config) {
+    const footerContent = document.getElementById('footer-content');
+    if (footerContent) {
+      let html = '';
+      
+      // 页脚版权信息
+      if (config.footerText) {
+        const footerText = config.footerText;
+        if (footerText.includes('[') && footerText.includes('](')) {
+          html += `<p>${footerText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>')}</p>`;
+        } else {
+          html += `<p>${escapeHtml(footerText)}</p>`;
         }
       }
+      
+      // 备案号
+      if (config.icpNumber) {
+        html += `<p class="mt-1">${escapeHtml(config.icpNumber)}</p>`;
+      }
+      
+      if (html) {
+        footerContent.innerHTML = html;
+      }
     }
-  } catch (error) {
-    // 忽略错误
   }
 }
 

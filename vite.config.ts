@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { seoPlugin } from './server/plugins/seo-plugin';
 
 export default defineConfig({
   server: {
@@ -26,4 +27,5 @@ export default defineConfig({
       },
     },
   },
+  plugins: [seoPlugin()],
 });

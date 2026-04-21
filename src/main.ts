@@ -28,22 +28,6 @@ interface WhoisResponse {
   queriedAt?: string;
 }
 
-interface ApiKeyResponse {
-  success: boolean;
-  key?: string;
-  keyPrefix?: string;
-  message?: string;
-  notice?: string;
-  error?: string;
-  data?: Array<{
-    keyPrefix: string;
-    name: string;
-    createdAt: string;
-    lastUsed: string | null;
-    requestCount: number;
-  }>;
-}
-
 export function initApp(): void {
   const app = document.getElementById('app');
 
@@ -213,7 +197,7 @@ function initFormHandling(): void {
           localStorage.setItem('whois_api_key', apiKey);
           return true;
         }
-      } catch (err) {
+      } catch {
         console.error('获取 API Key 失败');
         return false;
       }
@@ -426,7 +410,7 @@ function displayResults(data: WhoisResponse): void {
       ['registrant_country', '注册国家'],
     ];
 
-    let hasRegistrant = registrantFields.some(([key]) => parsed[key]);
+    const hasRegistrant = registrantFields.some(([key]) => parsed[key]);
     if (hasRegistrant) {
       html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">持有人信息</h3></div>`;
       for (const [key, label] of registrantFields) {
@@ -464,48 +448,41 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-// 加载网站设置并更新页脚
+// 加载网站设置并更新页脚（使用服务端注入的配置）
 interface SiteSettings {
   footerText: string;
   icpNumber: string;
+  siteName?: string;
 }
 
-async function loadSiteSettings(): Promise<void> {
-  try {
-    const response = await fetch('/api/settings/public');
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      const footerContent = document.getElementById('footer-content');
-      if (footerContent) {
-        let html = '';
-        
-        // 页脚版权信息
-        if (data.data.footerText) {
-          const footerText = data.data.footerText;
-          // 如果包含链接，解析它
-          if (footerText.includes('[') && footerText.includes('](')) {
-            const linkMatch = footerText.match(/\[([^\]]+)\]\(([^)]+)\)/);
-            if (linkMatch) {
-              html += `<p>${footerText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>')}</p>`;
-            }
-          } else {
-            html += `<p>${escapeHtml(footerText)}</p>`;
-          }
+function loadSiteSettings(): void {
+  // 从服务端注入的全局配置读取
+  const config = (window as { __SITE_CONFIG__?: SiteSettings }).__SITE_CONFIG__;
+  
+  if (config) {
+    const footerContent = document.getElementById('footer-content');
+    if (footerContent) {
+      let html = '';
+      
+      // 页脚版权信息
+      if (config.footerText) {
+        const footerText = config.footerText;
+        if (footerText.includes('[') && footerText.includes('](')) {
+          html += `<p>${footerText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>')}</p>`;
         } else {
-          html += `<p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>`;
+          html += `<p>${escapeHtml(footerText)}</p>`;
         }
-        
-        // 备案号
-        if (data.data.icpNumber) {
-          html += `<p class="mt-1">${escapeHtml(data.data.icpNumber)}</p>`;
-        }
-        
-        footerContent.innerHTML = html;
+      } else {
+        html += `<p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>`;
       }
+      
+      // 备案号
+      if (config.icpNumber) {
+        html += `<p class="mt-1">${escapeHtml(config.icpNumber)}</p>`;
+      }
+      
+      footerContent.innerHTML = html;
     }
-  } catch (error) {
-    // 忽略错误，使用默认页脚
   }
 }
 

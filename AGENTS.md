@@ -20,23 +20,56 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 │   └── start.sh        # 生产环境启动脚本
 ├── server/             # 服务端逻辑
 │   ├── middleware/     # 中间件
-│   │   └── auth.ts    # API Key 认证中间件
+│   │   ├── auth.ts    # API Key 认证中间件
+│   │   └── seo.ts     # SEO 注入中间件（生产环境）
+│   ├── plugins/       # Vite 插件
+│   │   └── seo-plugin.ts  # SEO 注入插件（开发环境）
 │   ├── routes/         # API 路由
 │   │   ├── index.ts   # 路由总入口
 │   │   ├── keys.ts    # API Key 管理接口
+│   │   ├── settings.ts # 网站设置 API
 │   │   └── whois.ts   # WHOIS 查询 API
+│   ├── utils/         # 工具函数
+│   │   └── settings.ts # 网站设置存储
 │   ├── server.ts      # Express 服务入口
 │   └── vite.ts        # Vite 中间件集成
 ├── src/               # 前端源码
 │   ├── index.css      # 全局样式
 │   ├── main.ts        # WHOIS 查询界面
-│   └── admin.ts       # 管理后台界面
+│   ├── admin.ts       # 管理后台界面
+│   └── docs.ts        # API 文档界面
 ├── index.html         # 入口 HTML
 ├── admin.html         # 管理后台 HTML
+├── docs.html          # API 文档 HTML
 ├── package.json       # 项目依赖管理
 ├── tsconfig.json      # TypeScript 配置
-└── vite.config.ts     # Vite 配置
+└── vite.config.ts     # Vite 配置（含 SEO 插件）
 ```
+
+## SEO 服务端注入
+
+为了不影响 SEO，网站设置（标题、描述、关键词、备案号等）通过服务端注入的方式嵌入 HTML，而非前端动态获取。
+
+### 实现方式
+
+- **开发环境**: Vite 插件 `server/plugins/seo-plugin.ts` 在 `transformIndexHtml` 钩子中注入
+- **生产环境**: Express 中间件 `server/middleware/seo.ts` 在 `res.send` 时注入
+
+### 注入内容
+
+```html
+<!-- __SITE_CONFIG__ 全局配置 -->
+<script>window.__SITE_CONFIG__ = {...};</script>
+
+<!-- SEO meta 标签 -->
+<title>...</title>
+<meta name="description" content="...">
+<meta name="keywords" content="...">
+```
+
+### 前端读取
+
+前端代码从 `window.__SITE_CONFIG__` 同步读取配置，无需额外请求。
 
 ## 页面入口
 

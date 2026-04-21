@@ -36,7 +36,6 @@ interface ApiResponse<T> {
 
 // 会话 Token
 let adminToken = localStorage.getItem('admin_token') || '';
-let currentTab = 'keys';
 
 export function initAdminApp(): void {
   const app = document.getElementById('app');
@@ -154,7 +153,7 @@ function renderLoginPage(app: HTMLElement): void {
         loginBtn.disabled = false;
         loginText.textContent = '登录';
       }
-    } catch (error) {
+    } catch {
       loginError.textContent = '网络错误，请重试';
       loginError.classList.remove('hidden');
       loginBtn.disabled = false;
@@ -552,7 +551,9 @@ function initAdminEventHandlers(): void {
         method: 'POST',
         headers: { 'X-Admin-Token': adminToken },
       });
-    } catch {}
+    } catch {
+      // 忽略错误，确保登出流程继续
+    }
     localStorage.removeItem('admin_token');
     adminToken = '';
     location.reload();
@@ -691,7 +692,7 @@ async function loadSettings(): Promise<void> {
       (document.getElementById('site-description') as HTMLTextAreaElement).value = s.siteDescription || '';
       (document.getElementById('site-keywords') as HTMLInputElement).value = s.siteKeywords || '';
       (document.getElementById('footer-text') as HTMLInputElement).value = s.footerText || '';
-      (document.getElementById('icp-number') as HTMLInputElement).value = (s as any).icpNumber || '';
+      (document.getElementById('icp-number') as HTMLInputElement).value = s.icpNumber || '';
       
       (document.getElementById('enable-seo') as HTMLInputElement).checked = s.enableSeo || false;
       (document.getElementById('seo-title') as HTMLInputElement).value = s.seoTitle || '';
@@ -717,7 +718,7 @@ async function loadSettings(): Promise<void> {
         analyticsFields.classList.toggle('pointer-events-none', !s.enableAnalytics);
       }
     }
-  } catch (error) {
+  } catch {
     showToast('加载设置失败', 'error');
   }
 }
@@ -828,7 +829,7 @@ async function createNewKey(): Promise<void> {
     } else {
       showToast(data.error || '创建失败', 'error');
     }
-  } catch (error) {
+  } catch {
     showToast('创建失败', 'error');
   }
 }
@@ -984,7 +985,7 @@ async function loadKeys(): Promise<void> {
         });
       }
     }
-  } catch (error) {
+  } catch {
     listContainer.innerHTML = `
       <div class="px-4 sm:px-6 py-10 sm:py-12 text-center text-red-500">
         加载失败

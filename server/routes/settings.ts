@@ -14,7 +14,7 @@ router.get('/api/settings', (_req: Request, res: Response) => {
       success: true,
       data: settings,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: '获取设置失败',
@@ -41,7 +41,7 @@ router.get('/api/settings/public', (_req: Request, res: Response) => {
         analyticsCode: settings.enableAnalytics ? settings.analyticsCode : '',
       },
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: '获取设置失败',
@@ -59,7 +59,7 @@ router.put('/api/settings', adminAuth, (req: Request, res: Response) => {
       data: settings,
       message: '设置已保存',
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: '保存设置失败',
@@ -76,7 +76,7 @@ router.post('/api/settings/reset', adminAuth, (_req: Request, res: Response) => 
       data: settings,
       message: '设置已重置为默认值',
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({
       success: false,
       error: '重置设置失败',

@@ -24,7 +24,7 @@ interface WhoisQuery {
  * GET /api/whois?domain=example.com
  * POST /api/whois { "domain": "example.com" }
  */
-router.get('/api/whois', async (req: Request<{}, {}, {}, WhoisParams>, res: Response) => {
+router.get('/api/whois', async (req: Request<object, object, object, WhoisParams>, res: Response) => {
   const { domain } = req.query;
 
   if (!domain) {
