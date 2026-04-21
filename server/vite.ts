@@ -7,7 +7,6 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import viteConfig from '../vite.config';
-import { getAdminPath } from './utils/settings';
 
 const isDev = process.env.COZE_PROJECT_ENV !== 'PROD';
 
@@ -32,22 +31,10 @@ export async function setupViteMiddleware(app: Application) {
     if (req.url.startsWith('/api/')) {
       return next('router');
     }
-
-    // 动态获取当前后台路径（支持运行时修改）
-    const adminPath = getAdminPath();
-
-    // 处理自定义后台路径
-    if (req.url === `/${adminPath}` || req.url === `/${adminPath}.html`) {
-      const adminHtmlPath = path.join(process.cwd(), 'admin.html');
-      if (fs.existsSync(adminHtmlPath)) {
-        return res.sendFile(adminHtmlPath);
-      }
-    }
-
     vite.middlewares(req, res, next);
   });
 
-  console.log(`🚀 Vite dev server initialized (admin path: dynamic)`);
+  console.log('🚀 Vite dev server initialized');
 }
 
 /**
@@ -55,7 +42,6 @@ export async function setupViteMiddleware(app: Application) {
  */
 export function setupStaticServer(app: Application) {
   const distPath = path.resolve(process.cwd(), 'dist');
-  const adminPath = getAdminPath();
 
   if (!fs.existsSync(distPath)) {
     console.error('❌ dist folder not found. Please run "pnpm build" first.');
@@ -65,11 +51,11 @@ export function setupStaticServer(app: Application) {
   // 1. 服务静态文件（如果存在对应文件则直接返回）
   app.use(express.static(distPath));
 
-  // 2. 多页面支持 - 处理自定义后台路径
-  app.use(`/${adminPath}`, (_req: Request, res: Response) => {
-    const adminHtmlPath = path.join(distPath, 'admin.html');
-    if (fs.existsSync(adminHtmlPath)) {
-      res.sendFile(adminHtmlPath);
+  // 2. 多页面支持 - 处理 /admin.html
+  app.use('/admin.html', (_req: Request, res: Response) => {
+    const adminPath = path.join(distPath, 'admin.html');
+    if (fs.existsSync(adminPath)) {
+      res.sendFile(adminPath);
     } else {
       // 如果 admin.html 不存在，返回 index.html
       res.sendFile(path.join(distPath, 'index.html'));
@@ -77,11 +63,16 @@ export function setupStaticServer(app: Application) {
   });
 
   // 3. SPA fallback - 所有未处理的请求返回 index.html
+  // 到达这里的请求说明：
+  //   - 不是 API 请求（已被前面注册的路由处理）
+  //   - 不是静态文件（express.static 未找到对应文件）
+  //   - 不是 /admin.html（已被上面处理）
+  //   - 需要返回 index.html 让前端路由处理
   app.use((_req: Request, res: Response) => {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 
-  console.log(`📦 Serving static files from dist/ (admin path: /${adminPath})`);
+  console.log('📦 Serving static files from dist/');
 }
 
 /**

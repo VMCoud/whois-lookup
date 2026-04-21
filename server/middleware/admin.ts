@@ -1,6 +1,30 @@
 import crypto from 'crypto';
 import type { Request, Response, NextFunction } from 'express';
-import { getAdminAuth, validatePassword } from '../utils/settings';
+
+// 后台管理员账户配置（通过环境变量配置）
+interface AdminConfig {
+  username: string;
+  passwordHash: string;
+}
+
+// 从环境变量读取管理员配置
+function getAdminConfig(): AdminConfig | null {
+  const adminUser = process.env.ADMIN_USERNAME;
+  const adminPass = process.env.ADMIN_PASSWORD;
+
+  if (!adminUser || !adminPass) {
+    // 默认账户（生产环境应设置环境变量）
+    return {
+      username: 'admin',
+      passwordHash: crypto.createHash('sha256').update('admin123').digest('hex'),
+    };
+  }
+
+  return {
+    username: adminUser,
+    passwordHash: crypto.createHash('sha256').update(adminPass).digest('hex'),
+  };
+}
 
 // 会话存储（生产环境应使用 Redis 或数据库）
 const sessions: Map<string, { username: string; createdAt: string }> = new Map();
@@ -48,13 +72,15 @@ export function validateSession(token: string): boolean {
  * 验证管理员登录
  */
 export function validateAdminLogin(username: string, password: string): { success: boolean; token?: string; error?: string } {
-  const config = getAdminAuth();
+  const config = getAdminConfig();
 
   if (!config) {
     return { success: false, error: '管理员未配置' };
   }
 
-  if (username !== config.username || !validatePassword(password, config.passwordHash)) {
+  const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+
+  if (username !== config.username || passwordHash !== config.passwordHash) {
     return { success: false, error: '用户名或密码错误' };
   }
 
