@@ -2,6 +2,7 @@ import { Router } from 'express';
 import whoisRouter from './whois';
 import keysRouter from './keys';
 import adminRouter from './admin';
+import settingsRouter from './settings';
 import { apiKeyAuth } from '../middleware/auth';
 
 const router = Router();
@@ -13,6 +14,9 @@ router.use(whoisRouter);
 // 注册 API Key 管理路由（需要后台认证）
 router.use(adminRouter);
 router.use(keysRouter);
+
+// 注册网站设置路由（直接挂载，路由自带 /api/settings 前缀）
+router.use(settingsRouter);
 
 // 健康检查接口
 router.get('/api/health', (req, res) => {
