@@ -37,7 +37,7 @@ export function initApp(): void {
   }
 
   app.innerHTML = `
-    <div class="min-h-screen bg-gray-50 text-gray-800">
+    <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
       <!-- Header -->
       <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
         <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -65,7 +65,7 @@ export function initApp(): void {
       </header>
 
       <!-- Main Content -->
-      <main class="max-w-5xl mx-auto px-6 py-12">
+      <main class="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
         <!-- Search Section -->
         <div class="text-center mb-12">
           <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
@@ -160,7 +160,7 @@ export function initApp(): void {
       </main>
 
       <!-- Footer -->
-      <footer class="border-t border-gray-200 mt-16 bg-white">
+      <footer class="border-t border-gray-200 bg-white py-4 mt-auto">
         <div class="max-w-5xl mx-auto px-6 py-6 text-center text-sm text-gray-500">
           <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
         </div>
