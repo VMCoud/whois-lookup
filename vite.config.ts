@@ -17,4 +17,12 @@ export default defineConfig({
       interval: 100,
     }
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        admin: './admin.html',
+      },
+    },
+  },
 });

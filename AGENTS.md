@@ -2,7 +2,7 @@
 
 ## 项目描述
 
-WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois) 的域名查询服务，支持 API Key 认证。
+WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois) 的域名查询服务，支持 API Key 认证和过期时效管理。
 
 ## 技术栈
 
@@ -29,12 +29,19 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 │   └── vite.ts        # Vite 中间件集成
 ├── src/               # 前端源码
 │   ├── index.css      # 全局样式
-│   └── main.ts        # WHOIS 查询界面
+│   ├── main.ts        # WHOIS 查询界面
+│   └── admin.ts       # 管理后台界面
 ├── index.html         # 入口 HTML
+├── admin.html         # 管理后台 HTML
 ├── package.json       # 项目依赖管理
 ├── tsconfig.json      # TypeScript 配置
 └── vite.config.ts     # Vite 配置
 ```
+
+## 页面入口
+
+- **首页**: http://localhost:5000/ - WHOIS 查询界面
+- **管理后台**: http://localhost:5000/admin.html - API Key 管理后台
 
 ## API 接口
 
@@ -93,14 +100,15 @@ Content-Type: application/json
 
 **GET** `/api/keys/init`
 
-首次访问时自动创建默认 API Key。
+首次访问时自动创建默认 API Key（30天有效期）。
 
 响应:
 ```json
 {
   "success": true,
   "key": "64字符的hex密钥",
-  "keyPrefix": "前8位"
+  "keyPrefix": "前8位",
+  "expiresInDays": 30
 }
 ```
 
@@ -113,7 +121,8 @@ Content-Type: application/json
 请求体:
 ```json
 {
-  "name": "My Application"
+  "name": "My Application",
+  "expiresInDays": 30  // 可选：过期天数，0 表示永不过期，默认永不过期
 }
 ```
 
@@ -124,7 +133,8 @@ Content-Type: application/json
   "data": {
     "name": "My Application",
     "key": "完整密钥（仅返回一次）",
-    "keyPrefix": "前8位"
+    "keyPrefix": "前8位",
+    "expiresAt": "2024-02-15T10:30:00.000Z"
   }
 }
 ```
@@ -144,10 +154,25 @@ Content-Type: application/json
       "keyPrefix": "a1b2c3d4",
       "name": "Default Key",
       "createdAt": "2024-01-15T10:30:00.000Z",
+      "expiresAt": "2024-02-15T10:30:00.000Z",
       "lastUsed": "2024-01-15T11:00:00.000Z",
-      "requestCount": 42
+      "requestCount": 42,
+      "remainingDays": 15
     }
   ]
+}
+```
+
+#### 续期 Key
+
+**PUT** `/api/keys/:keyPrefix`
+
+续期指定的 API Key。
+
+请求体:
+```json
+{
+  "expiresInDays": 30  // 续期天数，0 表示永不过期
 }
 ```
 
@@ -163,12 +188,19 @@ Content-Type: application/json
 
 返回服务状态。
 
+## API Key 过期时效
+
+- **创建 Key**: 可设置过期天数（7/30/90/180/365 天）或永不过期
+- **续期 Key**: 已过期的 Key 无法续期，需要重新创建
+- **剩余天数**: 列表中显示每个 Key 的剩余有效天数
+- **过期提醒**: 剩余 ≤7 天的 Key 会显示黄色警告
+
 ## 认证说明
 
-- WHOIS 查询接口需要 API Key 认证
+- WHOIS 查询接口需要有效且未过期的 API Key
 - API Key 通过请求头 `X-API-Key` 或查询参数 `apiKey` 传递
 - 建议使用请求头方式，避免 Key 泄露在日志中
-- 可创建多个 Key 用于不同应用场景
+- 过期的 Key 将无法使用，需要续期或重新创建
 
 ## 包管理规范
 

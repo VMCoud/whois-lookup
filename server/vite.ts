@@ -50,10 +50,22 @@ export function setupStaticServer(app: Application) {
   // 1. 服务静态文件（如果存在对应文件则直接返回）
   app.use(express.static(distPath));
 
-  // 2. SPA fallback - 所有未处理的请求返回 index.html
+  // 2. 多页面支持 - 处理 /admin.html
+  app.use('/admin.html', (_req: Request, res: Response) => {
+    const adminPath = path.join(distPath, 'admin.html');
+    if (fs.existsSync(adminPath)) {
+      res.sendFile(adminPath);
+    } else {
+      // 如果 admin.html 不存在，返回 index.html
+      res.sendFile(path.join(distPath, 'index.html'));
+    }
+  });
+
+  // 3. SPA fallback - 所有未处理的请求返回 index.html
   // 到达这里的请求说明：
   //   - 不是 API 请求（已被前面注册的路由处理）
   //   - 不是静态文件（express.static 未找到对应文件）
+  //   - 不是 /admin.html（已被上面处理）
   //   - 需要返回 index.html 让前端路由处理
   app.use((_req: Request, res: Response) => {
     res.sendFile(path.join(distPath, 'index.html'));
