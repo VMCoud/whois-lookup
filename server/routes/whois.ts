@@ -196,7 +196,8 @@ function queryWhois(domain: string, options: Record<string, unknown>): Promise<s
  */
 function parseWhoisText(text: string): Record<string, string | string[]> {
   const parsed: Record<string, string | string[]> = {};
-  const lines = text.split('\n');
+  // 处理 \r\n (Windows) 和 \n (Unix) 换行符
+  const lines = text.split(/\r?\n/);
 
   // 字段名映射表（原始字段名 → 标准化字段名）
   const fieldMapping: Record<string, string> = {
@@ -226,43 +227,98 @@ function parseWhoisText(text: string): Record<string, string | string[]> {
     'expiration_time': 'expiration_date',
     'expiry_date': 'expiration_date',
     'expiration_date': 'expiration_date',
+    'registrar_registration_expiration_date': 'expiration_date',
     'updated_date': 'updated_date',
     'dnssec': 'dnssec',
+    'registrar_whois_server': 'registrar_whois_server',
+    'registrar_url': 'registrar_url',
+    'registry_domain_id': 'registry_domain_id',
+    'registrar_iana_id': 'registrar_iana_id',
+    'registrar_abuse_contact_email': 'registrar_abuse_email',
+    'registrar_abuse_contact_phone': 'registrar_abuse_phone',
+    'registry_registrant_id': 'registry_registrant_id',
+    'registrant_stateprovince': 'registrant_state',
+    'registrant_country': 'registrant_country',
+    'registrant_email': 'registrant_email',
   };
 
   for (const line of lines) {
-    // 跳过空行和分隔线
-    if (!line.trim() || line.startsWith('=') || line.startsWith('%')) {
+    // 清理行末的 \r 并跳过空行和分隔线
+    const cleanLine = line.trim().replace(/\r$/, '');
+    if (!cleanLine) {
+      continue;
+    }
+
+    // 跳过特殊行
+    if (cleanLine.startsWith('=') || cleanLine.startsWith('%') || cleanLine.startsWith('>>>')) {
+      continue;
+    }
+
+    // 跳过免责声明段落（包含特定关键词的行）
+    const lowerLine = cleanLine.toLowerCase();
+    if (lowerLine.startsWith('for more information') || 
+        lowerLine.startsWith('important reminder') ||
+        lowerLine.startsWith('if you wish to contact') ||
+        lowerLine.startsWith('if you have a legitimate interest') ||
+        lowerLine.startsWith('the data in') ||
+        lowerLine.startsWith('web-based whois') ||
+        lowerLine.startsWith('pursuant') ||
+        lowerLine.startsWith('we will review') ||
+        lowerLine.startsWith('to verify that you are not') ||
+        lowerLine.startsWith('lawful purposes') ||
+        lowerLine.startsWith('pursuant to') ||
+        lowerLine.startsWith('if you wish') ||
+        lowerLine.match(/^\d+\.\s/)) {  // 跳过编号列表（如 "1. xxx"）
+      continue;
+    }
+
+    // 跳过超长的行（通常是免责声明文本）
+    if (cleanLine.length > 300) {
+      continue;
+    }
+
+    // 跳过以 URL 形式开始的行（不是有冒号的键值对）
+    if (cleanLine.startsWith('http://') || cleanLine.startsWith('https://') || cleanLine.startsWith('www.')) {
       continue;
     }
 
     // 匹配 Key: Value 格式
-    const match = line.match(/^([^\s:]+(?:\s+[^\s:]+)*):\s*(.*)$/);
+    const match = cleanLine.match(/^([^\s:]+(?:\s+[^\s:]+)*):\s*(.*)$/);
     if (match) {
-      let key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
+      const key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
       const value = match[2].trim();
+
+      // 跳过 URL 类型的值（通常是隐私保护跳转到网页）
+      if (value.startsWith('http://') || 
+          value.startsWith('https://') || 
+          value.startsWith('www.') ||
+          value.startsWith('//')) {
+        // 保留域名相关的 URL，跳过其他的
+        if (!['registrar_whois_server', 'registrar_url'].includes(key)) {
+          continue;
+        }
+      }
 
       // 应用字段名映射
       const mappedKey = fieldMapping[key] || key;
-      key = mappedKey;
 
       // 跳过通用联系方式（但保留特定实体的联系方式）
       // 只跳过顶级的 phone/fax，不跳过 registrant_contact_email 等
-      if (['phone', 'fax'].includes(key) || 
-          (key === 'e-mail' || key === 'email')) {
+      if (['phone', 'fax'].includes(mappedKey) || 
+          (mappedKey === 'e-mail' || mappedKey === 'email')) {
         // 这些是通用的联系方式，跳过
         continue;
       }
 
       // 如果已有相同 key，转换为数组
-      if (parsed[key] !== undefined) {
-        if (Array.isArray(parsed[key])) {
-          (parsed[key] as string[]).push(value);
+      if (parsed[mappedKey] !== undefined) {
+        if (Array.isArray(parsed[mappedKey])) {
+          (parsed[mappedKey] as string[]).push(value);
         } else {
-          parsed[key] = [parsed[key] as string, value];
+          parsed[mappedKey] = [parsed[mappedKey] as string, value];
         }
       } else {
-        parsed[key] = value;
+        parsed[mappedKey] = value;
       }
     }
   }
