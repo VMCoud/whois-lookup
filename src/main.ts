@@ -1,5 +1,8 @@
 // WHOIS 查询 API 前端界面
 
+// API Key 存储在 localStorage（模块级变量）
+let apiKey = localStorage.getItem('whois_api_key') || '';
+
 interface WhoisResponse {
   success: boolean;
   domain: string;
@@ -15,6 +18,7 @@ interface ApiKeyResponse {
   keyPrefix?: string;
   message?: string;
   notice?: string;
+  error?: string;
   data?: Array<{
     keyPrefix: string;
     name: string;
@@ -32,8 +36,7 @@ export function initApp(): void {
     return;
   }
 
-  // API Key 存储在 localStorage
-  let apiKey = localStorage.getItem('whois_api_key') || '';
+  // API Key 已在模块顶部初始化
 
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -481,7 +484,6 @@ function initFormHandling(): void {
   const successState = document.getElementById('success-state')!;
   const errorMessage = document.getElementById('error-message')!;
 
-  // Handle form submit
   form.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
 
@@ -491,30 +493,42 @@ function initFormHandling(): void {
       return;
     }
 
-    // Check API key
-    if (!apiKey) {
-      alert('请先设置 API Key');
-      document.getElementById('api-key-btn')?.click();
-      return;
-    }
-
-    // Show loading state
     resultsContainer.classList.remove('hidden');
     loadingState.classList.remove('hidden');
     errorState.classList.add('hidden');
     successState.classList.add('hidden');
 
-    // Disable button
     searchBtn.disabled = true;
     searchIcon.innerHTML = `<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>`;
     searchIcon.classList.add('animate-spin');
     searchText.textContent = '查询中...';
 
+    if (!apiKey) {
+      try {
+        const keyResponse = await fetch('/api/keys/init');
+        const keyData = await keyResponse.json();
+        if (keyData.success && keyData.key) {
+          apiKey = keyData.key;
+          localStorage.setItem('whois_api_key', apiKey);
+          document.getElementById('api-key-status')!.textContent = '已设置 Key';
+        }
+      } catch (err) {
+        console.error('获取 API Key 失败');
+      }
+    }
+
+    if (!apiKey) {
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      errorMessage.textContent = '请先在设置中获取 API Key';
+      searchBtn.disabled = false;
+      searchText.textContent = '查询';
+      return;
+    }
+
     try {
       const response = await fetch(`/api/whois?domain=${encodeURIComponent(domain)}`, {
-        headers: {
-          'X-API-Key': apiKey,
-        },
+        headers: { 'X-API-Key': apiKey },
       });
       const data: WhoisResponse = await response.json();
 
@@ -524,7 +538,6 @@ function initFormHandling(): void {
         errorState.classList.remove('hidden');
         errorMessage.textContent = data.error || '未知错误';
 
-        // 如果是未授权，清除 key 并提示重新设置
         if (response.status === 401) {
           localStorage.removeItem('whois_api_key');
           apiKey = '';
@@ -539,7 +552,6 @@ function initFormHandling(): void {
       errorState.classList.remove('hidden');
       errorMessage.textContent = error instanceof Error ? error.message : '网络请求失败';
     } finally {
-      // Re-enable button
       searchBtn.disabled = false;
       searchIcon.classList.remove('animate-spin');
       searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
@@ -547,7 +559,6 @@ function initFormHandling(): void {
     }
   });
 
-  // Handle Enter key
   domainInput.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       form.dispatchEvent(new Event('submit'));
@@ -640,3 +651,8 @@ function escapeHtml(text: string): string {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// 自动初始化
+document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+});

@@ -535,3 +535,8 @@ function showToast(message: string, type: 'success' | 'error' = 'success'): void
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+// 自动初始化
+document.addEventListener('DOMContentLoaded', () => {
+  initAdminApp();
+});
