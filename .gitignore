@@ -9,6 +9,10 @@ dist-server/
 build/
 out/
 
+# Data files (runtime)
+data/
+assets/
+
 # Testing
 coverage/
 *.lcov

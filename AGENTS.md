@@ -13,14 +13,10 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 ## 目录结构
 
 ```
-├── scripts/            # 构建与启动脚本
-│   ├── build.sh        # 构建脚本
-│   ├── dev.sh          # 开发环境启动脚本
-│   ├── prepare.sh      # 预处理脚本
-│   └── start.sh        # 生产环境启动脚本
 ├── server/             # 服务端逻辑
 │   ├── middleware/     # 中间件
 │   │   ├── auth.ts    # API Key 认证中间件
+│   │   ├── admin.ts   # 管理后台认证中间件
 │   │   └── seo.ts     # SEO 注入中间件（生产环境）
 │   ├── plugins/       # Vite 插件
 │   │   └── seo-plugin.ts  # SEO 注入插件（开发环境）
@@ -44,7 +40,8 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 ├── docs.html          # API 文档 HTML
 ├── package.json       # 项目依赖管理
 ├── tsconfig.json      # TypeScript 配置
-└── vite.config.ts     # Vite 配置（含 SEO 插件）
+├── vite.config.ts     # Vite 配置（含 SEO 插件）
+└── .coze              # Coze 部署配置
 ```
 
 ## SEO 服务端注入
