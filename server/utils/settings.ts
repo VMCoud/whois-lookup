@@ -20,6 +20,10 @@ export interface SiteSettings {
   analyticsId: string;
   analyticsCode: string;
   
+  // WHOIS 设置
+  whoisServer: string;        // 自定义 WHOIS 服务器
+  whoisTimeout: number;       // 查询超时时间（毫秒）
+  
   // 页脚设置
   footerText: string;
   icpNumber: string;
@@ -42,6 +46,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
   enableAnalytics: false,
   analyticsId: '',
   analyticsCode: '',
+  
+  whoisServer: '',
+  whoisTimeout: 15000,
   
   footerText: 'Powered by php-whois',
   icpNumber: '',

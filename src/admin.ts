@@ -21,6 +21,8 @@ interface SiteSettings {
   enableAnalytics: boolean;
   analyticsId: string;
   analyticsCode: string;
+  whoisServer: string;
+  whoisTimeout: number;
   footerText: string;
   icpNumber: string;
   customCss: string;
@@ -440,6 +442,28 @@ function renderAdminPage(app: HTMLElement): void {
               </div>
             </div>
 
+            <!-- WHOIS Settings -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                </svg>
+                WHOIS 查询设置
+              </h2>
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">自定义 WHOIS 服务器</label>
+                  <input type="text" id="whois-server" placeholder="留空使用默认服务器，如 whois.example.com" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none" />
+                  <p class="text-xs text-gray-500 mt-1">设置后将使用此服务器查询所有域名</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">查询超时时间（毫秒）</label>
+                  <input type="number" id="whois-timeout" placeholder="15000" min="5000" max="60000" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none" />
+                  <p class="text-xs text-gray-500 mt-1">范围：5000-60000 毫秒</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Analytics Settings -->
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
               <div class="flex items-center justify-between mb-4">
@@ -703,6 +727,9 @@ async function loadSettings(): Promise<void> {
       (document.getElementById('analytics-id') as HTMLInputElement).value = s.analyticsId || '';
       (document.getElementById('analytics-code') as HTMLTextAreaElement).value = s.analyticsCode || '';
       
+      (document.getElementById('whois-server') as HTMLInputElement).value = s.whoisServer || '';
+      (document.getElementById('whois-timeout') as HTMLInputElement).value = String(s.whoisTimeout || 15000);
+      
       (document.getElementById('custom-css') as HTMLTextAreaElement).value = s.customCss || '';
       (document.getElementById('custom-js') as HTMLTextAreaElement).value = s.customJs || '';
 
@@ -741,6 +768,8 @@ async function saveSettings(): Promise<void> {
     enableAnalytics: (document.getElementById('enable-analytics') as HTMLInputElement).checked,
     analyticsId: (document.getElementById('analytics-id') as HTMLInputElement).value,
     analyticsCode: (document.getElementById('analytics-code') as HTMLTextAreaElement).value,
+    whoisServer: (document.getElementById('whois-server') as HTMLInputElement).value,
+    whoisTimeout: parseInt((document.getElementById('whois-timeout') as HTMLInputElement).value) || 15000,
     customCss: (document.getElementById('custom-css') as HTMLTextAreaElement).value,
     customJs: (document.getElementById('custom-js') as HTMLTextAreaElement).value,
   };

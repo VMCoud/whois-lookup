@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { lookup as whoisLookup } from 'whois';
 import { optionalApiKeyAuth } from '../middleware/auth';
+import { getSettings } from '../utils/settings';
 
 const router = Router();
 
@@ -80,14 +81,25 @@ async function performWhoisQuery(
     return;
   }
 
-  // 获取 TLD 特定的 WHOIS 服务器
-  const tldServer = getWhoisServer(cleanDomain);
-  if (tldServer) {
-    options.server = tldServer;
+  // 获取站点设置
+  const settings = getSettings();
+  
+  // 获取 TLD 特定的 WHOIS 服务器（用户自定义服务器优先级最高）
+  const customServer = settings.whoisServer;
+  if (customServer) {
+    options.server = customServer;
+  } else {
+    const tldServer = getWhoisServer(cleanDomain);
+    if (tldServer) {
+      options.server = tldServer;
+    }
   }
 
+  // 使用设置中的超时时间
+  const timeout = settings.whoisTimeout || 15000;
+
   try {
-    const result = await queryWhois(cleanDomain, options);
+    const result = await queryWhois(cleanDomain, options, timeout);
     res.json({
       success: true,
       domain: cleanDomain,
@@ -156,22 +168,17 @@ function getWhoisServer(domain: string): string | null {
 }
 
 /**
- * WHOIS 查询超时时间（毫秒）
- */
-const WHOIS_TIMEOUT = 15000; // 15秒
-
-/**
  * 执行 WHOIS 查询
  */
-function queryWhois(domain: string, options: Record<string, unknown>): Promise<string> {
+function queryWhois(domain: string, options: Record<string, unknown>, timeout: number = 15000): Promise<string> {
   return new Promise((resolve, reject) => {
     // 设置超时
-    const timeout = setTimeout(() => {
-      reject(new Error(`WHOIS 查询超时（${WHOIS_TIMEOUT / 1000}秒），服务器可能无响应或域名不存在`));
-    }, WHOIS_TIMEOUT);
+    const timer = setTimeout(() => {
+      reject(new Error(`WHOIS 查询超时（${timeout / 1000}秒），服务器可能无响应或域名不存在`));
+    }, timeout);
 
     whoisLookup(domain, options, (err: Error | null, data: string) => {
-      clearTimeout(timeout);
+      clearTimeout(timer);
       if (err) {
         // 优化错误信息
         const errorMsg = err.message || '';
