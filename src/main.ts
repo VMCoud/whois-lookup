@@ -3,6 +3,22 @@
 // API Key 存储在 localStorage
 let apiKey = localStorage.getItem('whois_api_key') || '';
 
+// 自动获取默认 API Key（页面加载时执行）
+async function initApiKey(): Promise<void> {
+  if (!apiKey) {
+    try {
+      const keyResponse = await fetch('/api/keys/init');
+      const keyData = await keyResponse.json();
+      if (keyData.success && keyData.key) {
+        apiKey = keyData.key;
+        localStorage.setItem('whois_api_key', apiKey);
+      }
+    } catch (err) {
+      console.error('获取 API Key 失败:', err);
+    }
+  }
+}
+
 interface WhoisResponse {
   success: boolean;
   domain: string;
@@ -168,6 +184,7 @@ export function initApp(): void {
   `;
 
   // Initialize
+  initApiKey();
   initFormHandling();
 }
 

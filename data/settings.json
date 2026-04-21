@@ -1,0 +1,15 @@
+{
+  "siteName": "WHOIS Lookup",
+  "siteDescription": "专业的域名 WHOIS 查询服务",
+  "siteKeywords": "WHOIS, 域名查询, DNS, 域名注册",
+  "seoTitle": "WHOIS Lookup - 域名查询服务",
+  "seoDescription": "提供快速的域名 WHOIS 信息查询，支持全球主流域名后缀查询",
+  "seoAuthor": "WHOIS Lookup",
+  "enableSeo": true,
+  "enableAnalytics": true,
+  "analyticsId": "",
+  "analyticsCode": "",
+  "footerText": "Powered by php-whois",
+  "customCss": "",
+  "customJs": ""
+}
