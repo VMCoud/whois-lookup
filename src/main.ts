@@ -1,4 +1,4 @@
-// WHOIS 查询 API 前端界面 - 亮色主题
+// WHOIS 查询 API 前端界面 - 亮色主题 + 移动端适配
 
 // API Key 存储在 localStorage
 let apiKey = localStorage.getItem('whois_api_key') || '';
@@ -40,56 +40,56 @@ export function initApp(): void {
     <div class="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
       <!-- Header -->
       <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+        <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0 3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
               </svg>
             </div>
             <div>
-              <h1 class="text-xl font-bold text-gray-900">WHOIS Lookup</h1>
-              <p class="text-xs text-gray-500">域名查询服务</p>
+              <h1 class="text-base sm:text-xl font-bold text-gray-900">WHOIS Lookup</h1>
+              <p class="text-xs text-gray-500 hidden sm:block">域名查询服务</p>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <a href="/admin.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <div class="flex items-center">
+            <a href="/admin.html" class="text-xs sm:text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg sm:rounded-md hover:bg-gray-100 sm:hover:bg-transparent">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
-              管理后台
+              <span class="hidden sm:inline">管理后台</span>
             </a>
           </div>
         </div>
       </header>
 
       <!-- Main Content -->
-      <main class="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
+      <main class="flex-1 max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-12 w-full">
         <!-- Search Section -->
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+        <div class="text-center mb-6 sm:mb-12">
+          <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             域名 WHOIS 查询
           </h2>
-          <p class="text-gray-500 mb-8">输入域名查看详细的注册信息和 WHOIS 数据</p>
-          
+          <p class="text-gray-500 text-sm sm:text-base mb-6 sm:mb-8 px-2">输入域名查看详细的注册信息和 WHOIS 数据</p>
+
           <!-- Search Form -->
           <div class="max-w-2xl mx-auto">
-            <form id="whois-form" class="flex gap-3">
+            <form id="whois-form" class="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <div class="flex-1 relative">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="domain-input"
                   name="domain"
                   placeholder="输入域名，例如: google.com"
                   autocomplete="off"
-                  class="w-full px-5 py-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-lg shadow-sm"
+                  class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-base sm:text-lg shadow-sm"
                 />
               </div>
-              <button 
+              <button
                 type="submit"
                 id="search-btn"
-                class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold transition-all duration-200 flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg id="search-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -103,54 +103,54 @@ export function initApp(): void {
         <!-- Results Section -->
         <div id="results-container" class="hidden">
           <!-- Loading State -->
-          <div id="loading-state" class="hidden text-center py-12">
+          <div id="loading-state" class="hidden text-center py-8 sm:py-12">
             <div class="inline-flex items-center gap-3 text-gray-500">
               <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span>正在查询 WHOIS 信息...</span>
+              <span class="text-sm sm:text-base">正在查询 WHOIS 信息...</span>
             </div>
           </div>
 
           <!-- Error State -->
           <div id="error-state" class="hidden">
-            <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-              <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-6 text-center">
+              <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <h3 class="text-lg font-semibold text-red-600 mb-2">查询失败</h3>
-              <p id="error-message" class="text-red-500"></p>
+              <h3 class="text-base sm:text-lg font-semibold text-red-600 mb-2">查询失败</h3>
+              <p id="error-message" class="text-red-500 text-sm"></p>
             </div>
           </div>
 
           <!-- Success State -->
           <div id="success-state" class="hidden">
             <!-- Domain Info Card -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
-              <div class="bg-gradient-to-r from-blue-600/10 to-cyan-600/10 px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span id="result-domain" class="text-lg font-semibold text-gray-900"></span>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-4 sm:mb-6 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-600/10 to-cyan-600/10 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
+                    <span id="result-domain" class="text-base sm:text-lg font-semibold text-gray-900"></span>
                   </div>
-                  <span id="result-time" class="text-sm text-gray-500"></span>
+                  <span id="result-time" class="text-xs sm:text-sm text-gray-500 text-start sm:text-end"></span>
                 </div>
               </div>
-              <div class="p-6">
+              <div class="p-4 sm:p-6">
                 <!-- Parsed Info Grid -->
-                <div id="parsed-info" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
-                
+                <div id="parsed-info" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6"></div>
+
                 <!-- Raw Data Toggle -->
                 <details class="group">
-                  <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2">
+                  <summary class="cursor-pointer text-xs sm:text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2">
                     <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                     查看原始 WHOIS 数据
                   </summary>
                   <div class="mt-4">
-                    <pre id="raw-data" class="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 overflow-x-auto max-h-96 overflow-y-auto font-mono whitespace-pre-wrap"></pre>
+                    <pre id="raw-data" class="bg-gray-100 rounded-lg p-3 sm:p-4 text-xs text-gray-600 overflow-x-auto max-h-64 sm:max-h-96 overflow-y-auto font-mono whitespace-pre-wrap break-all"></pre>
                   </div>
                 </details>
               </div>
@@ -160,8 +160,8 @@ export function initApp(): void {
       </main>
 
       <!-- Footer -->
-      <footer class="border-t border-gray-200 bg-white py-4 mt-auto">
-        <div class="max-w-5xl mx-auto px-6 py-6 text-center text-sm text-gray-500">
+      <footer class="border-t border-gray-200 bg-white py-3 sm:py-4 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs sm:text-sm text-gray-500">
           <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
         </div>
       </footer>
@@ -291,7 +291,7 @@ function displayResults(data: WhoisResponse): void {
     let html = '';
 
     // 域名基础信息
-    html += `<div class="col-span-2 mb-2"><h3 class="text-sm font-semibold text-blue-600 border-b border-gray-200 pb-1">域名基础信息</h3></div>`;
+    html += `<div class="col-span-1 sm:col-span-2 mb-2"><h3 class="text-xs sm:text-sm font-semibold text-blue-600 border-b border-gray-200 pb-1">域名基础信息</h3></div>`;
 
     const basicFields: Array<[string, string, string?]> = [
       ['domain_name', '域名', 'domain__name'],
@@ -311,7 +311,7 @@ function displayResults(data: WhoisResponse): void {
     }
 
     // 注册商信息
-    html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-purple-600 border-b border-gray-200 pb-1">注册商信息</h3></div>`;
+    html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-purple-600 border-b border-gray-200 pb-1">注册商信息</h3></div>`;
 
     const registrarFields: Array<[string, string]> = [
       ['registrar', '注册商'],
@@ -342,14 +342,14 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (statuses.length > 0) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-amber-600 border-b border-gray-200 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-amber-600 border-b border-gray-200 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
       for (const status of statuses) {
         const statusClass = status.includes('Prohibited') ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200';
         const statusText = status.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">查看详情</a>');
         html += `
-          <div class="col-span-2 ${statusClass} border rounded-lg p-3">
+          <div class="col-span-1 sm:col-span-2 ${statusClass} border rounded-lg p-3">
             <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">锁定状态</div>
-            <div class="text-sm text-gray-800">${statusText}</div>
+            <div class="text-sm text-gray-800 break-all">${statusText}</div>
           </div>
         `;
       }
@@ -370,11 +370,11 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (nameServers.length > 0) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-green-600 border-b border-gray-200 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-green-600 border-b border-gray-200 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
       for (const ns of nameServers) {
         html += `
           <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <div class="text-gray-800 font-medium">${escapeHtml(ns.toUpperCase())}</div>
+            <div class="text-gray-800 font-medium text-sm break-all">${escapeHtml(ns.toUpperCase())}</div>
           </div>
         `;
       }
@@ -391,13 +391,13 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (dnssecValue) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-indigo-600 border-b border-gray-200 pb-1">DNS 安全</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-indigo-600 border-b border-gray-200 pb-1">DNS 安全</h3></div>`;
       const dnssecClass = dnssecValue.toLowerCase().includes('signed') ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
       const dnssecText = dnssecValue.toLowerCase().includes('signed') ? 'DNSSEC 已开启（已签名）' : 'DNSSEC 未开启（未签名）';
       html += `
-        <div class="col-span-2 ${dnssecClass} border rounded-lg p-3">
+        <div class="col-span-1 sm:col-span-2 ${dnssecClass} border rounded-lg p-3">
           <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">DNSSEC 状态</div>
-          <div class="text-gray-800">${dnssecText}</div>
+          <div class="text-gray-800 text-sm">${dnssecText}</div>
         </div>
       `;
     }
@@ -411,7 +411,7 @@ function displayResults(data: WhoisResponse): void {
 
     let hasRegistrant = registrantFields.some(([key]) => parsed[key]);
     if (hasRegistrant) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">持有人信息</h3></div>`;
+      html += `<div class="col-span-1 sm:col-span-2 mb-2 mt-4"><h3 class="text-xs sm:text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">持有人信息</h3></div>`;
       for (const [key, label] of registrantFields) {
         const value = parsed[key];
         if (value) {
@@ -420,9 +420,9 @@ function displayResults(data: WhoisResponse): void {
       }
     }
 
-    parsedInfo.innerHTML = html || '<p class="text-gray-500 col-span-2 text-center">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = html || '<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">无法解析 WHOIS 数据</p>';
   } else {
-    parsedInfo.innerHTML = '<p class="text-gray-500 col-span-2 text-center">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = '<p class="text-gray-500 col-span-1 sm:col-span-2 text-center text-sm">无法解析 WHOIS 数据</p>';
   }
 
   rawData.textContent = data.raw || '无原始数据';

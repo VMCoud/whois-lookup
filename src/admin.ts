@@ -1,4 +1,4 @@
-// 管理后台 - API Key 管理界面 - 亮色主题
+// 管理后台 - API Key 管理界面 - 亮色主题 + 移动端适配
 
 interface ApiKeyInfo {
   keyPrefix: string;
@@ -39,20 +39,20 @@ export function initAdminApp(): void {
 
 function renderLoginPage(app: HTMLElement): void {
   app.innerHTML = `
-    <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center p-6">
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center p-4">
       <div class="w-full max-w-md">
-        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <div class="text-center mb-8">
-            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+          <div class="text-center mb-6 sm:mb-8">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-3 sm:mb-4">
+              <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
             </div>
-            <h1 class="text-2xl font-bold text-gray-900">管理后台</h1>
-            <p class="text-gray-500 mt-2">请登录以管理 API Keys</p>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">管理后台</h1>
+            <p class="text-gray-500 mt-2 text-sm sm:text-base">请登录以管理 API Keys</p>
           </div>
 
-          <form id="login-form" class="space-y-5">
+          <form id="login-form" class="space-y-4 sm:space-y-5">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">用户名</label>
               <input 
@@ -80,16 +80,16 @@ function renderLoginPage(app: HTMLElement): void {
             </button>
           </form>
 
-          <div id="login-error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center"></div>
+          <div id="login-error" class="hidden mt-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center"></div>
 
-          <div class="mt-6 p-4 bg-gray-50 rounded-xl">
+          <div class="mt-5 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-xl">
             <p class="text-xs text-gray-500 text-center">
               默认账户: admin / admin123<br/>
               生产环境请设置环境变量 ADMIN_USERNAME 和 ADMIN_PASSWORD
             </p>
           </div>
 
-          <div class="mt-6 text-center">
+          <div class="mt-5 sm:mt-6 text-center">
             <a href="/" class="text-sm text-blue-600 hover:text-blue-500">返回首页</a>
           </div>
         </div>
@@ -150,90 +150,90 @@ function renderAdminPage(app: HTMLElement): void {
     <div class="min-h-screen bg-gray-50">
       <!-- Header -->
       <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
             </div>
             <div>
-              <h1 class="text-xl font-bold text-gray-900">管理后台</h1>
-              <p class="text-xs text-gray-500">API Key 管理</p>
+              <h1 class="text-base sm:text-xl font-bold text-gray-900">管理后台</h1>
+              <p class="text-xs text-gray-500 hidden sm:block">API Key 管理</p>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <a href="/" class="text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-2">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <a href="/" class="text-xs sm:text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg sm:rounded-none hover:bg-gray-100 sm:hover:bg-transparent">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
               </svg>
-              返回首页
+              <span class="hidden sm:inline">返回首页</span>
             </a>
-            <button id="logout-btn" class="text-sm text-gray-600 hover:text-red-600 transition-colors flex items-center gap-2">
+            <button id="logout-btn" class="text-xs sm:text-sm text-gray-600 hover:text-red-600 transition-colors flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg sm:rounded-none hover:bg-gray-100 sm:hover:bg-transparent">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
               </svg>
-              退出
+              <span class="hidden sm:inline">退出</span>
             </button>
           </div>
         </div>
       </header>
 
       <!-- Main Content -->
-      <main class="max-w-6xl mx-auto px-6 py-12">
+      <main class="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-500">总 Keys</p>
-                <p id="stat-total" class="text-3xl font-bold mt-1 text-gray-900">0</p>
+                <p class="text-xs sm:text-sm text-gray-500">总 Keys</p>
+                <p id="stat-total" class="text-2xl sm:text-3xl font-bold mt-1 text-gray-900">0</p>
               </div>
-              <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
                 </svg>
               </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-500">活跃 Keys</p>
-                <p id="stat-active" class="text-3xl font-bold mt-1 text-green-600">0</p>
+                <p class="text-xs sm:text-sm text-gray-500">活跃 Keys</p>
+                <p id="stat-active" class="text-2xl sm:text-3xl font-bold mt-1 text-green-600">0</p>
               </div>
-              <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-500">即将过期</p>
-                <p id="stat-expiring" class="text-3xl font-bold mt-1 text-yellow-500">0</p>
+                <p class="text-xs sm:text-sm text-gray-500">即将过期</p>
+                <p id="stat-expiring" class="text-2xl sm:text-3xl font-bold mt-1 text-yellow-500">0</p>
               </div>
-              <div class="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
               </div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 col-span-2 lg:col-span-2">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-500">总请求量</p>
-                <p id="stat-requests" class="text-3xl font-bold mt-1 text-purple-600">0</p>
+                <p class="text-xs sm:text-sm text-gray-500">总请求量</p>
+                <p id="stat-requests" class="text-2xl sm:text-3xl font-bold mt-1 text-purple-600">0</p>
               </div>
-              <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
               </div>
@@ -242,10 +242,10 @@ function renderAdminPage(app: HTMLElement): void {
         </div>
 
         <!-- Create New Key Section -->
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">创建新的 API Key</h2>
-          <div class="flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[200px]">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+          <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">创建新的 API Key</h2>
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
+            <div class="flex-1 min-w-0">
               <label class="block text-sm text-gray-600 mb-2">Key 名称</label>
               <input 
                 type="text" 
@@ -254,8 +254,8 @@ function renderAdminPage(app: HTMLElement): void {
                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none"
               />
             </div>
-            <div class="w-48">
-              <label class="block text-sm text-gray-600 mb-2">有效期（天）</label>
+            <div class="sm:w-48">
+              <label class="block text-sm text-gray-600 mb-2">有效期</label>
               <select 
                 id="new-key-expires"
                 class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none bg-white"
@@ -270,31 +270,30 @@ function renderAdminPage(app: HTMLElement): void {
             </div>
             <button 
               id="create-key-btn"
-              class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all flex items-center gap-2 shadow-md"
+              class="w-full sm:w-auto px-5 sm:px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all flex items-center justify-center gap-2 shadow-md"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
-              创建 Key
+              <span class="sm:hidden">创建</span>
+              <span class="hidden sm:inline">创建 Key</span>
             </button>
           </div>
 
           <!-- New Key Display -->
-          <div id="new-key-result" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-            <div class="flex items-center justify-between flex-wrap gap-4">
-              <div class="flex-1 min-w-[300px]">
-                <p class="text-sm text-green-600 mb-2">新创建的 Key（请妥善保管，只显示一次）</p>
-                <div class="flex gap-2">
-                  <input 
-                    type="text" 
-                    id="new-key-value"
-                    readonly
-                    class="flex-1 px-4 py-3 rounded-xl bg-white border border-green-300 text-green-700 font-mono text-sm"
-                  />
-                  <button id="copy-key-btn" class="px-4 py-3 rounded-xl bg-green-100 hover:bg-green-200 text-green-700 transition-colors">
-                    复制
-                  </button>
-                </div>
+          <div id="new-key-result" class="hidden mt-5 sm:mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div class="space-y-3">
+              <p class="text-sm text-green-600 font-medium">新创建的 Key（请妥善保管，只显示一次）</p>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input 
+                  type="text" 
+                  id="new-key-value"
+                  readonly
+                  class="flex-1 px-4 py-2.5 sm:py-3 rounded-xl bg-white border border-green-300 text-green-700 font-mono text-xs sm:text-sm"
+                />
+                <button id="copy-key-btn" class="px-4 py-2.5 sm:py-3 rounded-xl bg-green-100 hover:bg-green-200 text-green-700 transition-colors text-sm whitespace-nowrap">
+                  复制
+                </button>
               </div>
               <div class="text-sm text-green-600">
                 <span id="new-key-expires-info"></span>
@@ -305,21 +304,21 @@ function renderAdminPage(app: HTMLElement): void {
 
         <!-- Keys List -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">API Keys 列表</h2>
+          <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-900">API Keys 列表</h2>
             <button 
               id="refresh-btn"
-              class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm transition-colors flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-2"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>
               刷新
             </button>
           </div>
 
-          <!-- Table Header -->
-          <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 text-sm text-gray-500 font-medium">
+          <!-- Desktop Table Header (hidden on mobile) -->
+          <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 text-sm text-gray-500 font-medium">
             <div class="col-span-2">名称</div>
             <div class="col-span-2">Key 前缀</div>
             <div class="col-span-2">创建时间</div>
@@ -330,8 +329,8 @@ function renderAdminPage(app: HTMLElement): void {
           </div>
 
           <!-- Keys List Container -->
-          <div id="keys-list" class="divide-y divide-gray-100">
-            <div class="px-6 py-8 text-center text-gray-500">
+          <div id="keys-list" class="divide-y divide-gray-100 md:divide-none">
+            <div class="px-4 sm:px-6 py-8 text-center text-gray-500">
               加载中...
             </div>
           </div>
@@ -341,11 +340,11 @@ function renderAdminPage(app: HTMLElement): void {
       <!-- Renew Modal -->
       <div id="renew-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
-          <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">续期 API Key</h3>
+          <div class="p-5 sm:p-6 border-b border-gray-200">
+            <h3 class="text-base sm:text-lg font-semibold text-gray-900">续期 API Key</h3>
             <p id="renew-key-name" class="text-sm text-gray-500 mt-1"></p>
           </div>
-          <div class="p-6">
+          <div class="p-5 sm:p-6">
             <label class="block text-sm text-gray-600 mb-2">设置新的过期时间</label>
             <select 
               id="renew-expires"
@@ -360,10 +359,10 @@ function renderAdminPage(app: HTMLElement): void {
             </select>
           </div>
           <div class="p-4 border-t border-gray-200 flex justify-end gap-3">
-            <button id="cancel-renew-btn" class="px-6 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors">
+            <button id="cancel-renew-btn" class="px-5 sm:px-6 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-sm">
               取消
             </button>
-            <button id="confirm-renew-btn" class="px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition-colors">
+            <button id="confirm-renew-btn" class="px-5 sm:px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition-colors text-sm">
               确认续期
             </button>
           </div>
@@ -503,8 +502,8 @@ async function loadKeys(): Promise<void> {
 
       if (keys.length === 0) {
         listContainer.innerHTML = `
-          <div class="px-6 py-12 text-center text-gray-500">
-            <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="px-4 sm:px-6 py-10 sm:py-12 text-center text-gray-500">
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
             </svg>
             <p>暂无 API Keys</p>
@@ -526,10 +525,11 @@ async function loadKeys(): Promise<void> {
             statusColor = 'text-yellow-600 bg-yellow-50';
           }
 
-          return `
-            <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors">
+          // Desktop view (grid)
+          const desktopView = `
+            <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-gray-50 transition-colors">
               <div class="col-span-2">
-                <div class="font-medium text-gray-900">${escapeHtml(key.name)}</div>
+                <div class="font-medium text-gray-900 truncate">${escapeHtml(key.name)}</div>
               </div>
               <div class="col-span-2">
                 <code class="text-sm text-gray-600 font-mono">${key.keyPrefix}***</code>
@@ -566,6 +566,53 @@ async function loadKeys(): Promise<void> {
               </div>
             </div>
           `;
+
+          // Mobile view (cards)
+          const mobileView = `
+            <div class="md:hidden p-4 border-b border-gray-100">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="font-medium text-gray-900">${escapeHtml(key.name)}</div>
+                  <code class="text-xs text-gray-500 font-mono">${key.keyPrefix}***</code>
+                </div>
+                <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColor}">
+                  ${statusText}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+                <div>
+                  <span class="text-gray-500">创建:</span>
+                  <span class="text-gray-700 ml-1">${formatDate(key.createdAt)}</span>
+                </div>
+                <div>
+                  <span class="text-gray-500">过期:</span>
+                  <span class="${isKeyExpired ? 'text-red-600' : 'text-gray-700'} ml-1">${key.expiresAt ? formatDate(key.expiresAt) : '永不过期'}</span>
+                </div>
+                <div>
+                  <span class="text-gray-500">请求:</span>
+                  <span class="text-gray-700 ml-1">${key.requestCount}</span>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button 
+                  class="renew-btn flex-1 px-3 py-2 rounded-lg text-xs bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                  data-key="${key.keyPrefix}"
+                  data-name="${escapeHtml(key.name)}"
+                >
+                  续期
+                </button>
+                <button 
+                  class="delete-btn flex-1 px-3 py-2 rounded-lg text-xs bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                  data-key="${key.keyPrefix}"
+                  data-name="${escapeHtml(key.name)}"
+                >
+                  删除
+                </button>
+              </div>
+            </div>
+          `;
+
+          return desktopView + mobileView;
         }).join('');
 
         listContainer.querySelectorAll('.renew-btn').forEach(btn => {
@@ -585,7 +632,7 @@ async function loadKeys(): Promise<void> {
     }
   } catch (error) {
     listContainer.innerHTML = `
-      <div class="px-6 py-12 text-center text-red-500">
+      <div class="px-4 sm:px-6 py-10 sm:py-12 text-center text-red-500">
         加载失败
       </div>
     `;
@@ -672,9 +719,9 @@ function escapeHtml(text: string): string {
 
 function showToast(message: string, type: 'success' | 'error' = 'success'): void {
   const toast = document.createElement('div');
-  toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-xl shadow-lg z-50 transform transition-all duration-300 ${
+  toast.className = `fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm px-4 sm:px-6 py-3 rounded-xl shadow-lg z-50 transform transition-all duration-300 ${
     type === 'success' ? 'bg-green-600' : 'bg-red-600'
-  } text-white`;
+  } text-white text-sm`;
   toast.textContent = message;
   document.body.appendChild(toast);
 
