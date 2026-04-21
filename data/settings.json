@@ -9,7 +9,8 @@
   "enableAnalytics": true,
   "analyticsId": "",
   "analyticsCode": "",
-  "footerText": "Powered by php-whois",
+  "footerText": " [php-whois](https://github.com/...)",
   "customCss": "",
-  "customJs": ""
+  "customJs": "",
+  "icpNumber": "京ICP备XXXXXXXX号"
 }

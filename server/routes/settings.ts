@@ -33,6 +33,7 @@ router.get('/api/settings/public', (_req: Request, res: Response) => {
         siteName: settings.siteName,
         siteDescription: settings.siteDescription,
         footerText: settings.footerText,
+        icpNumber: settings.icpNumber,
         enableSeo: settings.enableSeo,
         seoTitle: settings.seoTitle,
         seoDescription: settings.seoDescription,
