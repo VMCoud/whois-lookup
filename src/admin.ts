@@ -99,13 +99,6 @@ function renderLoginPage(app: HTMLElement): void {
 
           <div id="login-error" class="hidden mt-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center"></div>
 
-          <div class="mt-5 sm:mt-6 p-3 sm:p-4 bg-gray-50 rounded-xl">
-            <p class="text-xs text-gray-500 text-center">
-              默认账户: admin / admin123<br/>
-              生产环境请设置环境变量 ADMIN_USERNAME 和 ADMIN_PASSWORD
-            </p>
-          </div>
-
           <div class="mt-5 sm:mt-6 text-center">
             <a href="/" class="text-sm text-blue-600 hover:text-blue-500">返回首页</a>
           </div>
