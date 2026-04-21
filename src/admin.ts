@@ -612,8 +612,6 @@ function initTabs(): void {
   const contentSettings = document.getElementById('content-settings');
 
   function setActiveTab(tab: 'keys' | 'settings'): void {
-    currentTab = tab;
-    
     // 更新标签样式
     const tabs = [tabKeys, tabSettings];
     tabs.forEach(t => {
