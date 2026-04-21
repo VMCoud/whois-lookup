@@ -1,6 +1,6 @@
-// WHOIS 查询 API 前端界面
+// WHOIS 查询 API 前端界面 - 亮色主题
 
-// API Key 存储在 localStorage（模块级变量）
+// API Key 存储在 localStorage
 let apiKey = localStorage.getItem('whois_api_key') || '';
 
 interface WhoisResponse {
@@ -36,13 +36,11 @@ export function initApp(): void {
     return;
   }
 
-  // API Key 已在模块顶部初始化
-
   app.innerHTML = `
-    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div class="min-h-screen bg-gray-50 text-gray-800">
       <!-- Header -->
-      <header class="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,112 +48,30 @@ export function initApp(): void {
               </svg>
             </div>
             <div>
-              <h1 class="text-xl font-bold">WHOIS Lookup</h1>
-              <p class="text-xs text-slate-400">域名查询服务</p>
+              <h1 class="text-xl font-bold text-gray-900">WHOIS Lookup</h1>
+              <p class="text-xs text-gray-500">域名查询服务</p>
             </div>
           </div>
           <div class="flex items-center gap-4">
-            <a href="/admin.html" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+            <a href="/admin.html" class="text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
               管理后台
             </a>
-            <button id="api-key-btn" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-              </svg>
-              <span id="api-key-status">${apiKey ? '已设置 Key' : '设置 API Key'}</span>
-            </button>
           </div>
         </div>
       </header>
 
       <!-- Main Content -->
-      <main class="max-w-6xl mx-auto px-6 py-12">
-        <!-- API Key Modal -->
-        <div id="api-key-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-lg">
-            <div class="p-6 border-b border-slate-700">
-              <h3 class="text-lg font-semibold">API Key 管理</h3>
-              <p class="text-sm text-slate-400 mt-1">管理您的访问密钥</p>
-            </div>
-            <div class="p-6 space-y-6">
-              <!-- Current Key -->
-              <div>
-                <label class="block text-sm font-medium text-slate-300 mb-2">当前 API Key</label>
-                <div class="flex gap-2">
-                  <input 
-                    type="password" 
-                    id="current-key-input"
-                    value="${apiKey}"
-                    placeholder="输入或粘贴您的 API Key"
-                    class="flex-1 px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  />
-                  <button id="save-key-btn" class="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors">
-                    保存
-                  </button>
-                </div>
-              </div>
-
-              <!-- Create New Key -->
-              <div class="border-t border-slate-700 pt-6">
-                <h4 class="text-sm font-medium text-slate-300 mb-3">创建新 Key</h4>
-                <div class="flex gap-2 mb-3">
-                  <input 
-                    type="text" 
-                    id="new-key-name"
-                    placeholder="输入 Key 名称"
-                    class="flex-1 px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                  />
-                  <button id="create-key-btn" class="px-4 py-3 rounded-lg bg-green-600 hover:bg-green-500 text-white font-medium transition-colors">
-                    创建
-                  </button>
-                </div>
-                <div id="new-key-display" class="hidden">
-                  <label class="block text-xs text-slate-400 mb-2">新创建的 Key（请妥善保管，只显示一次）</label>
-                  <div class="flex gap-2">
-                    <input 
-                      type="text" 
-                      id="new-key-value"
-                      readonly
-                      class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-green-500/50 text-green-400 font-mono text-sm"
-                    />
-                    <button id="copy-new-key-btn" class="px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors">
-                      复制
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- List Keys -->
-              <div class="border-t border-slate-700 pt-6">
-                <div class="flex items-center justify-between mb-3">
-                  <h4 class="text-sm font-medium text-slate-300">已创建的 Keys</h4>
-                  <button id="refresh-keys-btn" class="text-xs text-slate-400 hover:text-white transition-colors">
-                    刷新
-                  </button>
-                </div>
-                <div id="keys-list" class="space-y-2 max-h-48 overflow-y-auto">
-                  <p class="text-sm text-slate-500">加载中...</p>
-                </div>
-              </div>
-            </div>
-            <div class="p-4 border-t border-slate-700 flex justify-end">
-              <button id="close-modal-btn" class="px-6 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors">
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-
+      <main class="max-w-5xl mx-auto px-6 py-12">
         <!-- Search Section -->
         <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
             域名 WHOIS 查询
           </h2>
-          <p class="text-slate-400 mb-8">输入域名查看详细的注册信息和 WHOIS 数据</p>
+          <p class="text-gray-500 mb-8">输入域名查看详细的注册信息和 WHOIS 数据</p>
           
           <!-- Search Form -->
           <div class="max-w-2xl mx-auto">
@@ -167,13 +83,13 @@ export function initApp(): void {
                   name="domain"
                   placeholder="输入域名，例如: google.com"
                   autocomplete="off"
-                  class="w-full px-5 py-4 rounded-xl bg-slate-800/50 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-lg"
+                  class="w-full px-5 py-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-lg shadow-sm"
                 />
               </div>
               <button 
                 type="submit"
                 id="search-btn"
-                class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold transition-all duration-200 flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg id="search-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -188,7 +104,7 @@ export function initApp(): void {
         <div id="results-container" class="hidden">
           <!-- Loading State -->
           <div id="loading-state" class="hidden text-center py-12">
-            <div class="inline-flex items-center gap-3 text-slate-400">
+            <div class="inline-flex items-center gap-3 text-gray-500">
               <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -199,26 +115,26 @@ export function initApp(): void {
 
           <!-- Error State -->
           <div id="error-state" class="hidden">
-            <div class="bg-red-900/30 border border-red-700/50 rounded-xl p-6 text-center">
-              <svg class="w-12 h-12 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+              <svg class="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <h3 class="text-lg font-semibold text-red-400 mb-2">查询失败</h3>
-              <p id="error-message" class="text-slate-400"></p>
+              <h3 class="text-lg font-semibold text-red-600 mb-2">查询失败</h3>
+              <p id="error-message" class="text-red-500"></p>
             </div>
           </div>
 
           <!-- Success State -->
           <div id="success-state" class="hidden">
             <!-- Domain Info Card -->
-            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 mb-6 overflow-hidden">
-              <div class="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 px-6 py-4 border-b border-slate-700/50">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-600/10 to-cyan-600/10 px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-3">
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span id="result-domain" class="text-lg font-semibold"></span>
+                    <span id="result-domain" class="text-lg font-semibold text-gray-900"></span>
                   </div>
-                  <span id="result-time" class="text-sm text-slate-400"></span>
+                  <span id="result-time" class="text-sm text-gray-500"></span>
                 </div>
               </div>
               <div class="p-6">
@@ -227,248 +143,33 @@ export function initApp(): void {
                 
                 <!-- Raw Data Toggle -->
                 <details class="group">
-                  <summary class="cursor-pointer text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                  <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-2">
                     <svg class="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                     查看原始 WHOIS 数据
                   </summary>
                   <div class="mt-4">
-                    <pre id="raw-data" class="bg-slate-900/50 rounded-lg p-4 text-xs text-slate-400 overflow-x-auto max-h-96 overflow-y-auto font-mono whitespace-pre-wrap"></pre>
+                    <pre id="raw-data" class="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 overflow-x-auto max-h-96 overflow-y-auto font-mono whitespace-pre-wrap"></pre>
                   </div>
                 </details>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- API Docs -->
-        <div class="mt-16">
-          <h3 class="text-xl font-semibold mb-6 text-center">API 接口文档</h3>
-          <div class="grid md:grid-cols-2 gap-6">
-            <!-- GET Endpoint -->
-            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="px-2 py-1 rounded text-xs font-semibold bg-green-600/20 text-green-400">GET</span>
-                <code class="text-sm text-slate-300">/api/whois?domain=example.com</code>
-              </div>
-              <p class="text-sm text-slate-400 mb-4">通过 URL 参数查询域名（需要 API Key）</p>
-              <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono">
-                <span class="text-slate-500"># 示例</span><br/>
-                <span class="text-cyan-400">curl</span> <span class="text-amber-400">"https://${window.location.host}/api/whois?domain=google.com"</span><br/>
-                <span class="text-blue-400">-H</span> <span class="text-amber-400">"X-API-Key: YOUR_API_KEY"</span>
-              </div>
-            </div>
-
-            <!-- POST Endpoint -->
-            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-600/20 text-blue-400">POST</span>
-                <code class="text-sm text-slate-300">/api/whois</code>
-              </div>
-              <p class="text-sm text-slate-400 mb-4">通过请求体查询，支持高级选项</p>
-              <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono overflow-x-auto">
-                <span class="text-slate-500"># 示例</span><br/>
-                <span class="text-cyan-400">curl</span> <span class="text-blue-400">-X POST</span> <span class="text-amber-400">"https://${window.location.host}/api/whois"</span><br/>
-                <span class="text-blue-400">-H</span> <span class="text-amber-400">"X-API-Key: YOUR_API_KEY"</span><br/>
-                <span class="text-blue-400">-H</span> <span class="text-amber-400">"Content-Type: application/json"</span><br/>
-                <span class="text-blue-400">-d</span> <span class="text-green-400">'{"domain": "google.com", "timeout": 10000}'</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Key Management Endpoints -->
-          <div class="mt-6 grid md:grid-cols-2 gap-6">
-            <!-- Init Key -->
-            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="px-2 py-1 rounded text-xs font-semibold bg-yellow-600/20 text-yellow-400">GET</span>
-                <code class="text-sm text-slate-300">/api/keys/init</code>
-              </div>
-              <p class="text-sm text-slate-400">获取默认 API Key（首次使用时自动创建）</p>
-            </div>
-
-            <!-- Create Key -->
-            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="px-2 py-1 rounded text-xs font-semibold bg-purple-600/20 text-purple-400">POST</span>
-                <code class="text-sm text-slate-300">/api/keys</code>
-              </div>
-              <p class="text-sm text-slate-400">创建新的 API Key</p>
-              <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono mt-3">
-                <span class="text-cyan-400">curl</span> <span class="text-blue-400">-X POST</span> <span class="text-amber-400">"https://${window.location.host}/api/keys"</span><br/>
-                <span class="text-blue-400">-H</span> <span class="text-amber-400">"Content-Type: application/json"</span><br/>
-                <span class="text-blue-400">-d</span> <span class="text-green-400">'{"name": "My App"}'</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Response Format -->
-          <div class="mt-6 bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
-            <h4 class="text-lg font-semibold mb-4">响应格式</h4>
-            <div class="bg-slate-900/50 rounded-lg p-4 text-xs font-mono overflow-x-auto">
-<pre class="text-slate-300">{
-  <span class="text-green-400">"success"</span>: <span class="text-amber-400">true</span>,
-  <span class="text-green-400">"domain"</span>: <span class="text-amber-400">"google.com"</span>,
-  <span class="text-green-400">"raw"</span>: <span class="text-amber-400">"...原始 WHOIS 文本..."</span>,
-  <span class="text-green-400">"parsed"</span>: {
-    <span class="text-green-400">"domain_name"</span>: <span class="text-amber-400">"GOOGLE.COM"</span>,
-    <span class="text-green-400">"registrar"</span>: <span class="text-amber-400">"MarkMonitor Inc."</span>
-  },
-  <span class="text-green-400">"queriedAt"</span>: <span class="text-amber-400">"2024-01-15T10:30:00.000Z"</span>
-}</pre>
-            </div>
-          </div>
-        </div>
       </main>
 
       <!-- Footer -->
-      <footer class="border-t border-slate-700/50 mt-16">
-        <div class="max-w-6xl mx-auto px-6 py-6 text-center text-sm text-slate-500">
-          <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-400 hover:text-blue-300">php-whois</a></p>
+      <footer class="border-t border-gray-200 mt-16 bg-white">
+        <div class="max-w-5xl mx-auto px-6 py-6 text-center text-sm text-gray-500">
+          <p>Powered by <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-blue-600 hover:text-blue-500">php-whois</a></p>
         </div>
       </footer>
     </div>
   `;
 
-  // Initialize all event handlers
-  initModalHandlers();
+  // Initialize
   initFormHandling();
-}
-
-function initModalHandlers(): void {
-  const modal = document.getElementById('api-key-modal')!;
-  const apiKeyBtn = document.getElementById('api-key-btn')!;
-  const closeModalBtn = document.getElementById('close-modal-btn')!;
-  const currentKeyInput = document.getElementById('current-key-input') as HTMLInputElement;
-  const saveKeyBtn = document.getElementById('save-key-btn')!;
-  const newKeyName = document.getElementById('new-key-name') as HTMLInputElement;
-  const createKeyBtn = document.getElementById('create-key-btn')!;
-  const newKeyDisplay = document.getElementById('new-key-display')!;
-  const newKeyValue = document.getElementById('new-key-value') as HTMLInputElement;
-  const copyNewKeyBtn = document.getElementById('copy-new-key-btn')!;
-  const refreshKeysBtn = document.getElementById('refresh-keys-btn')!;
-  const keysList = document.getElementById('keys-list')!;
-  const apiKeyStatus = document.getElementById('api-key-status')!;
-
-  // Open modal
-  apiKeyBtn.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    loadKeysList();
-  });
-
-  // Close modal
-  closeModalBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-  });
-
-  // Close on backdrop click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      modal.classList.add('hidden');
-    }
-  });
-
-  // Save current key
-  saveKeyBtn.addEventListener('click', () => {
-    const key = currentKeyInput.value.trim();
-    if (key) {
-      localStorage.setItem('whois_api_key', key);
-      apiKey = key;
-      apiKeyStatus.textContent = '已设置 Key';
-      alert('API Key 已保存');
-    }
-  });
-
-  // Create new key
-  createKeyBtn.addEventListener('click', async () => {
-    const name = newKeyName.value.trim();
-    if (!name) {
-      alert('请输入 Key 名称');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/keys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      const data: ApiKeyResponse = await response.json();
-
-      if (data.success && data.data?.key) {
-        newKeyDisplay.classList.remove('hidden');
-        newKeyValue.value = data.data.key;
-        newKeyName.value = '';
-        loadKeysList();
-      } else {
-        alert(data.error || '创建失败');
-      }
-    } catch (error) {
-      alert('创建失败: ' + (error instanceof Error ? error.message : '未知错误'));
-    }
-  });
-
-  // Copy new key
-  copyNewKeyBtn.addEventListener('click', async () => {
-    const key = newKeyValue.value;
-    await navigator.clipboard.writeText(key);
-    alert('已复制到剪贴板');
-  });
-
-  // Refresh keys list
-  refreshKeysBtn.addEventListener('click', loadKeysList);
-
-  // Load keys list
-  async function loadKeysList(): Promise<void> {
-    try {
-      const response = await fetch('/api/keys');
-      const data: ApiKeyResponse = await response.json();
-
-      if (data.success && data.data) {
-        if (data.data.length === 0) {
-          keysList.innerHTML = '<p class="text-sm text-slate-500">暂无已创建的 Keys</p>';
-        } else {
-          keysList.innerHTML = data.data.map(k => `
-            <div class="flex items-center justify-between bg-slate-900/30 rounded-lg px-4 py-3">
-              <div>
-                <div class="text-sm font-medium text-white">${escapeHtml(k.name)}</div>
-                <div class="text-xs text-slate-500 font-mono">${k.keyPrefix}***... | 使用 ${k.requestCount} 次</div>
-              </div>
-              <button class="delete-key-btn text-xs text-red-400 hover:text-red-300 transition-colors" data-key="${k.keyPrefix}">
-                删除
-              </button>
-            </div>
-          `).join('');
-
-          // Add delete handlers
-          keysList.querySelectorAll('.delete-key-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const keyPrefix = (e.target as HTMLElement).dataset.key;
-              if (!keyPrefix) return;
-
-              if (!confirm('确定要删除这个 API Key 吗？')) return;
-
-              try {
-                const response = await fetch(`/api/keys/${keyPrefix}`, { method: 'DELETE' });
-                const result = await response.json();
-
-                if (result.success) {
-                  loadKeysList();
-                } else {
-                  alert(result.error || '删除失败');
-                }
-              } catch (error) {
-                alert('删除失败: ' + (error instanceof Error ? error.message : '未知错误'));
-              }
-            });
-          });
-        }
-      }
-    } catch (error) {
-      keysList.innerHTML = '<p class="text-sm text-red-400">加载失败</p>';
-    }
-  }
 }
 
 function initFormHandling(): void {
@@ -484,6 +185,26 @@ function initFormHandling(): void {
   const successState = document.getElementById('success-state')!;
   const errorMessage = document.getElementById('error-message')!;
 
+  // 自动获取默认 API Key
+  async function ensureApiKey(): Promise<boolean> {
+    if (!apiKey) {
+      try {
+        const keyResponse = await fetch('/api/keys/init');
+        const keyData = await keyResponse.json();
+        if (keyData.success && keyData.key) {
+          apiKey = keyData.key;
+          localStorage.setItem('whois_api_key', apiKey);
+          return true;
+        }
+      } catch (err) {
+        console.error('获取 API Key 失败');
+        return false;
+      }
+    }
+    return !!apiKey;
+  }
+
+  // 表单提交
   form.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
 
@@ -493,34 +214,24 @@ function initFormHandling(): void {
       return;
     }
 
+    // 显示加载状态
     resultsContainer.classList.remove('hidden');
     loadingState.classList.remove('hidden');
     errorState.classList.add('hidden');
     successState.classList.add('hidden');
 
+    // 禁用按钮
     searchBtn.disabled = true;
     searchIcon.innerHTML = `<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>`;
     searchIcon.classList.add('animate-spin');
     searchText.textContent = '查询中...';
 
-    if (!apiKey) {
-      try {
-        const keyResponse = await fetch('/api/keys/init');
-        const keyData = await keyResponse.json();
-        if (keyData.success && keyData.key) {
-          apiKey = keyData.key;
-          localStorage.setItem('whois_api_key', apiKey);
-          document.getElementById('api-key-status')!.textContent = '已设置 Key';
-        }
-      } catch (err) {
-        console.error('获取 API Key 失败');
-      }
-    }
-
-    if (!apiKey) {
+    // 确保有 API Key
+    const hasKey = await ensureApiKey();
+    if (!hasKey) {
       loadingState.classList.add('hidden');
       errorState.classList.remove('hidden');
-      errorMessage.textContent = '请先在设置中获取 API Key';
+      errorMessage.textContent = '获取 API Key 失败，请刷新页面重试';
       searchBtn.disabled = false;
       searchText.textContent = '查询';
       return;
@@ -541,7 +252,6 @@ function initFormHandling(): void {
         if (response.status === 401) {
           localStorage.removeItem('whois_api_key');
           apiKey = '';
-          document.getElementById('api-key-status')!.textContent = '设置 API Key';
         }
       } else {
         successState.classList.remove('hidden');
@@ -559,6 +269,7 @@ function initFormHandling(): void {
     }
   });
 
+  // 回车键支持
   domainInput.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       form.dispatchEvent(new Event('submit'));
@@ -572,19 +283,17 @@ function displayResults(data: WhoisResponse): void {
   const parsedInfo = document.getElementById('parsed-info')!;
   const rawData = document.getElementById('raw-data')!;
 
-  // Set domain and time
   resultDomain.textContent = data.domain;
   resultTime.textContent = data.queriedAt ? new Date(data.queriedAt).toLocaleString('zh-CN') : '';
 
-  // Display parsed info
   if (data.parsed && Object.keys(data.parsed).length > 0) {
     const parsed = data.parsed;
     let html = '';
 
-    // ===== 域名基础信息 =====
-    html += `<div class="col-span-2 mb-2"><h3 class="text-sm font-semibold text-cyan-400 border-b border-slate-700 pb-1">域名基础信息</h3></div>`;
+    // 域名基础信息
+    html += `<div class="col-span-2 mb-2"><h3 class="text-sm font-semibold text-blue-600 border-b border-gray-200 pb-1">域名基础信息</h3></div>`;
 
-    const basicFields: Array<[string, string, string]> = [
+    const basicFields: Array<[string, string, string?]> = [
       ['domain_name', '域名', 'domain__name'],
       ['registry_domain_id', '注册局 ID'],
       ['registrar_whois_server', 'WHOIS 服务器'],
@@ -601,8 +310,8 @@ function displayResults(data: WhoisResponse): void {
       }
     }
 
-    // ===== 注册商信息 =====
-    html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-purple-400 border-b border-slate-700 pb-1">注册商信息</h3></div>`;
+    // 注册商信息
+    html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-purple-600 border-b border-gray-200 pb-1">注册商信息</h3></div>`;
 
     const registrarFields: Array<[string, string]> = [
       ['registrar', '注册商'],
@@ -618,7 +327,7 @@ function displayResults(data: WhoisResponse): void {
       }
     }
 
-    // ===== 域名状态 =====
+    // 域名状态
     const statusKeys = ['domain_status', 'status'];
     const statuses: string[] = [];
     for (const key of statusKeys) {
@@ -633,20 +342,20 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (statuses.length > 0) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-amber-400 border-b border-slate-700 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-amber-600 border-b border-gray-200 pb-1">域名状态（${statuses.length}项安全锁定）</h3></div>`;
       for (const status of statuses) {
-        const statusClass = status.includes('Prohibited') ? 'bg-red-900/40 border-red-700' : 'bg-slate-900/30 border-slate-700';
-        const statusText = status.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:text-blue-300">查看详情</a>');
+        const statusClass = status.includes('Prohibited') ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200';
+        const statusText = status.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">查看详情</a>');
         html += `
           <div class="col-span-2 ${statusClass} border rounded-lg p-3">
-            <div class="text-xs text-slate-400 uppercase tracking-wide mb-1">锁定状态</div>
-            <div class="text-sm text-white">${statusText}</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">锁定状态</div>
+            <div class="text-sm text-gray-800">${statusText}</div>
           </div>
         `;
       }
     }
 
-    // ===== DNS 服务器 =====
+    // DNS 服务器
     const nsKeys = ['name_server', 'name_servers', 'nameserver', 'nameservers', 'nserver'];
     const nameServers: string[] = [];
     for (const key of nsKeys) {
@@ -661,18 +370,18 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (nameServers.length > 0) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-green-400 border-b border-slate-700 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-green-600 border-b border-gray-200 pb-1">DNS 服务器（${nameServers.length}台）</h3></div>`;
       for (const ns of nameServers) {
         html += `
-          <div class="bg-slate-900/30 border border-slate-700 rounded-lg p-3">
-            <div class="text-white">${escapeHtml(ns.toUpperCase())}</div>
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <div class="text-gray-800 font-medium">${escapeHtml(ns.toUpperCase())}</div>
           </div>
         `;
       }
     }
 
-    // ===== DNS 安全 =====
-    const dnssecKeys = ['dnssec', 'ds_dadata', 'domain_id_ext_pinfo'];
+    // DNS 安全
+    const dnssecKeys = ['dnssec', 'ds_dadata'];
     let dnssecValue: string | null = null;
     for (const key of dnssecKeys) {
       if (parsed[key]) {
@@ -682,31 +391,27 @@ function displayResults(data: WhoisResponse): void {
     }
 
     if (dnssecValue) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-blue-400 border-b border-slate-700 pb-1">DNS 安全</h3></div>`;
-      const dnssecClass = dnssecValue.toLowerCase().includes('signed') ? 'bg-green-900/40 border-green-700' : 'bg-yellow-900/40 border-yellow-700';
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-indigo-600 border-b border-gray-200 pb-1">DNS 安全</h3></div>`;
+      const dnssecClass = dnssecValue.toLowerCase().includes('signed') ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
       const dnssecText = dnssecValue.toLowerCase().includes('signed') ? 'DNSSEC 已开启（已签名）' : 'DNSSEC 未开启（未签名）';
       html += `
         <div class="col-span-2 ${dnssecClass} border rounded-lg p-3">
-          <div class="text-xs text-slate-400 uppercase tracking-wide mb-1">DNSSEC 状态</div>
-          <div class="text-white">${dnssecText}</div>
+          <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">DNSSEC 状态</div>
+          <div class="text-gray-800">${dnssecText}</div>
         </div>
       `;
     }
 
-    // ===== 持有人信息 =====
+    // 持有人信息
     const registrantFields: Array<[string, string]> = [
       ['registrant_name', '注册人姓名'],
       ['registrant_organization', '注册组织'],
       ['registrant_country', '注册国家'],
-      ['registrant_state', '注册省份'],
-      ['registrant_city', '注册城市'],
-      ['registrant_postal_code', '邮政编码'],
-      ['registrant_email', '注册人邮箱'],
     ];
 
     let hasRegistrant = registrantFields.some(([key]) => parsed[key]);
     if (hasRegistrant) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-pink-400 border-b border-slate-700 pb-1">持有人信息</h3></div>`;
+      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-pink-600 border-b border-gray-200 pb-1">持有人信息</h3></div>`;
       for (const [key, label] of registrantFields) {
         const value = parsed[key];
         if (value) {
@@ -715,73 +420,25 @@ function displayResults(data: WhoisResponse): void {
       }
     }
 
-    // ===== 管理员信息 =====
-    const adminFields: Array<[string, string]> = [
-      ['admin_name', '管理员姓名'],
-      ['admin_organization', '管理员组织'],
-      ['admin_country', '管理员国家'],
-      ['admin_email', '管理员邮箱'],
-    ];
-
-    let hasAdmin = adminFields.some(([key]) => parsed[key]);
-    if (hasAdmin) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-orange-400 border-b border-slate-700 pb-1">管理员信息</h3></div>`;
-      for (const [key, label] of adminFields) {
-        const value = parsed[key];
-        if (value) {
-          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
-        }
-      }
-    }
-
-    // ===== 技术联系人 =====
-    const techFields: Array<[string, string]> = [
-      ['tech_name', '技术联系人'],
-      ['tech_organization', '技术组织'],
-      ['tech_country', '技术联系国家'],
-      ['tech_email', '技术联系邮箱'],
-    ];
-
-    let hasTech = techFields.some(([key]) => parsed[key]);
-    if (hasTech) {
-      html += `<div class="col-span-2 mb-2 mt-4"><h3 class="text-sm font-semibold text-indigo-400 border-b border-slate-700 pb-1">技术联系人</h3></div>`;
-      for (const [key, label] of techFields) {
-        const value = parsed[key];
-        if (value) {
-          html += createFieldCard(label, formatValue(Array.isArray(value) ? value.join(', ') : value));
-        }
-      }
-    }
-
-    parsedInfo.innerHTML = html || '<p class="text-slate-400 col-span-2 text-center">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = html || '<p class="text-gray-500 col-span-2 text-center">无法解析 WHOIS 数据</p>';
   } else {
-    parsedInfo.innerHTML = '<p class="text-slate-400 col-span-2 text-center">无法解析 WHOIS 数据</p>';
+    parsedInfo.innerHTML = '<p class="text-gray-500 col-span-2 text-center">无法解析 WHOIS 数据</p>';
   }
 
-  // Display raw data
   rawData.textContent = data.raw || '无原始数据';
 }
 
 function createFieldCard(label: string, value: string): string {
   return `
-    <div class="bg-slate-900/30 border border-slate-700 rounded-lg p-3">
-      <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">${label}</div>
-      <div class="text-white text-sm break-all">${value}</div>
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">${label}</div>
+      <div class="text-gray-800 text-sm break-all">${value}</div>
     </div>
   `;
 }
 
 function formatValue(value: string): string {
-  // 格式化 URL 为可点击链接
-  return value.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-400 hover:text-blue-300">$1</a>');
-}
-
-function formatKey(key: string): string {
-  return key
-    .replace(/_/g, ' ')
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, str => str.toUpperCase())
-    .trim();
+  return value.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 hover:text-blue-500">$1</a>');
 }
 
 function escapeHtml(text: string): string {
@@ -790,7 +447,7 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-// 自动初始化
+// 初始化
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
 });

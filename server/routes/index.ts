@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import whoisRouter from './whois';
 import keysRouter from './keys';
+import adminRouter from './admin';
 import { apiKeyAuth } from '../middleware/auth';
 
 const router = Router();
@@ -9,7 +10,8 @@ const router = Router();
 router.use('/api/whois', apiKeyAuth);
 router.use(whoisRouter);
 
-// 注册 API Key 管理路由
+// 注册 API Key 管理路由（需要后台认证）
+router.use(adminRouter);
 router.use(keysRouter);
 
 // 健康检查接口
