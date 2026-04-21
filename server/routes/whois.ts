@@ -80,6 +80,12 @@ async function performWhoisQuery(
     return;
   }
 
+  // 获取 TLD 特定的 WHOIS 服务器
+  const tldServer = getWhoisServer(cleanDomain);
+  if (tldServer) {
+    options.server = tldServer;
+  }
+
   try {
     const result = await queryWhois(cleanDomain, options);
     res.json({
@@ -101,13 +107,83 @@ async function performWhoisQuery(
 }
 
 /**
+ * 获取特定 TLD 的 WHOIS 服务器
+ */
+function getWhoisServer(domain: string): string | null {
+  const tld = domain.split('.').pop()?.toLowerCase();
+  
+  // 常见 TLD 的 WHOIS 服务器映射
+  const whoisServers: Record<string, string> = {
+    // 中国域名
+    'cn': 'whois.cnnic.cn',
+    'com.cn': 'whois.cnnic.cn',
+    'net.cn': 'whois.cnnic.cn',
+    'org.cn': 'whois.cnnic.cn',
+    'gov.cn': 'whois.cnnic.cn',
+    'ac.cn': 'whois.cnnic.cn',
+    'bj.cn': 'whois.cnnic.cn',
+    'sh.cn': 'whois.cnnic.cn',
+    'tj.cn': 'whois.cnnic.cn',
+    'cq.cn': 'whois.cnnic.cn',
+    
+    // 国际通用域名
+    'top': 'whois.nic.top',
+    'vip': 'whois.nic.vip',
+    'shop': 'whois.nic.shop',
+    'store': 'whois.nic.store',
+    'site': 'whois.nic.site',
+    'online': 'whois.nic.online',
+    'fun': 'whois.nic.fun',
+    'xyz': 'whois.nic.xyz',
+    'club': 'whois.nic.club',
+    'io': 'whois.nic.io',
+    'co': 'whois.nic.co',
+    'me': 'whois.nic.me',
+    'cc': 'whois.nic.cc',
+    'tv': 'whois.nic.tv',
+    'biz': 'whois.biz',
+    'info': 'whois.afilias.info',
+    'mobi': 'whois.dotmobiregistry.net',
+    'asia': 'whois.nic.asia',
+    'tel': 'whois.nic.tel',
+    'pro': 'whois.nic.pro',
+    'app': 'whois.nic.google',
+    'dev': 'whois.nic.google',
+    'cloud': 'whois.nic.cloud',
+  };
+
+  return tld ? (whoisServers[tld] || null) : null;
+}
+
+/**
+ * WHOIS 查询超时时间（毫秒）
+ */
+const WHOIS_TIMEOUT = 15000; // 15秒
+
+/**
  * 执行 WHOIS 查询
  */
 function queryWhois(domain: string, options: Record<string, unknown>): Promise<string> {
   return new Promise((resolve, reject) => {
+    // 设置超时
+    const timeout = setTimeout(() => {
+      reject(new Error(`WHOIS 查询超时（${WHOIS_TIMEOUT / 1000}秒），服务器可能无响应或域名不存在`));
+    }, WHOIS_TIMEOUT);
+
     whoisLookup(domain, options, (err: Error | null, data: string) => {
+      clearTimeout(timeout);
       if (err) {
-        reject(err);
+        // 优化错误信息
+        const errorMsg = err.message || '';
+        if (errorMsg.includes('timeout') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('ENOTFOUND')) {
+          reject(new Error(`WHOIS 服务器无响应，请稍后重试`));
+        } else if (errorMsg.includes('ECONNREFUSED')) {
+          reject(new Error(`WHOIS 服务器连接被拒绝`));
+        } else {
+          reject(new Error(`WHOIS 查询失败: ${errorMsg}`));
+        }
+      } else if (!data || data.trim() === '') {
+        reject(new Error(`未获取到 WHOIS 数据，域名可能不存在`));
       } else {
         resolve(data);
       }
