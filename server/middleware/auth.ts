@@ -195,7 +195,7 @@ export function ensureDefaultApiKey(): string {
     }
   }
 
-  // 生成默认 key，30天有效期
-  const { key } = generateApiKey('Default Key', 30);
+  // 生成默认 key，永不过期
+  const { key } = generateApiKey('Default Key', null);
   return key;
 }

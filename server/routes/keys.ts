@@ -22,7 +22,6 @@ router.get('/api/keys/init', (_req: Request, res: Response) => {
     key,
     keyPrefix: key.substring(0, 8),
     notice: '请妥善保管此 Key，它只会显示一次',
-    expiresInDays: 30,
   });
 });
 

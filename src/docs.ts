@@ -31,13 +31,6 @@ export function initDocsApp(): void {
               </svg>
               <span class="hidden sm:inline">返回首页</span>
             </a>
-            <a href="/admin.html" class="text-xs sm:text-sm text-gray-600 hover:text-purple-600 transition-colors flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg sm:rounded-none hover:bg-gray-100 sm:hover:bg-transparent">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span class="hidden sm:inline">管理后台</span>
-            </a>
           </div>
         </div>
       </header>
@@ -350,76 +343,6 @@ export function initDocsApp(): void {
               <div class="bg-gray-900 rounded-lg p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
                 <pre class="text-green-400 whitespace-pre-wrap sm:whitespace-pre">curl -X DELETE "${window.location.origin}/api/keys/a1b2c3d4" \\
   -H "X-Admin-Token: ADMIN_TOKEN"</pre>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 管理后台认证 -->
-        <section class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
-          <div class="px-5 sm:px-6 py-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 border-b border-gray-200">
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900">管理后台认证</h2>
-          </div>
-          <div class="p-5 sm:p-6 space-y-6">
-            <!-- 登录 -->
-            <div class="border-b border-gray-100 pb-6">
-              <div class="flex items-center gap-2 mb-3">
-                <span class="px-2.5 py-1 rounded text-xs font-bold bg-blue-500 text-white">POST</span>
-                <code class="text-sm sm:text-base text-gray-800">/api/admin/login</code>
-              </div>
-              <p class="text-gray-600 text-sm mb-3">管理员登录</p>
-              
-              <div class="space-y-3">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">请求体参数</p>
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-xs sm:text-sm border border-gray-200 rounded-lg">
-                      <thead class="bg-gray-50">
-                        <tr>
-                          <th class="px-3 py-2 text-left text-gray-600 font-medium">参数名</th>
-                          <th class="px-3 py-2 text-left text-gray-600 font-medium">类型</th>
-                          <th class="px-3 py-2 text-left text-gray-600 font-medium">说明</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-gray-100">
-                        <tr>
-                          <td class="px-3 py-2 text-gray-800 font-mono">username</td>
-                          <td class="px-3 py-2 text-gray-600">string</td>
-                          <td class="px-3 py-2 text-gray-600">用户名</td>
-                        </tr>
-                        <tr>
-                          <td class="px-3 py-2 text-gray-800 font-mono">password</td>
-                          <td class="px-3 py-2 text-gray-600">string</td>
-                          <td class="px-3 py-2 text-gray-600">密码</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">响应示例</p>
-                  <div class="bg-gray-900 rounded-lg p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
-                    <pre class="text-green-400 whitespace-pre-wrap sm:whitespace-pre">{
-  "success": true,
-  "token": "SESSION_TOKEN"
-}</pre>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 验证会话 -->
-            <div>
-              <div class="flex items-center gap-2 mb-3">
-                <span class="px-2.5 py-1 rounded text-xs font-bold bg-green-500 text-white">GET</span>
-                <code class="text-sm sm:text-base text-gray-800">/api/admin/check</code>
-              </div>
-              <p class="text-gray-600 text-sm mb-3">验证管理员会话是否有效</p>
-              
-              <div class="bg-gray-900 rounded-lg p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
-                <pre class="text-green-400 whitespace-pre-wrap sm:whitespace-pre">curl "${window.location.origin}/api/admin/check" \\
-  -H "X-Admin-Token: SESSION_TOKEN"</pre>
               </div>
             </div>
           </div>
