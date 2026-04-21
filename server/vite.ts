@@ -12,6 +12,7 @@ const isDev = process.env.COZE_PROJECT_ENV !== 'PROD';
 
 /**
  * 集成 Vite 开发服务器（中间件模式）
+ * API 路由需要在 Vite 之前注册，所以这里只处理非 API 请求
  */
 export async function setupViteMiddleware(app: Application) {
   const vite = await createViteServer({
@@ -23,8 +24,14 @@ export async function setupViteMiddleware(app: Application) {
     appType: 'spa',
   });
 
-  // 使用 Vite middleware
-  app.use(vite.middlewares);
+  // 使用 Vite middleware 处理非 API 请求
+  app.use((req, _res, next) => {
+    // 跳过 API 请求，让 Express 路由处理
+    if (req.url.startsWith('/api/')) {
+      return next('router');
+    }
+    vite.middlewares(req, _res, next);
+  });
 
   console.log('🚀 Vite dev server initialized');
 }

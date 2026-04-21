@@ -1,9 +1,14 @@
 # 项目上下文
 
+## 项目描述
+
+WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois) 的域名查询服务。
+
 ## 技术栈
 
 - **核心**: Vite 7, TypeScript, Express
 - **UI**: Tailwind CSS
+- **WHOIS**: node-whois 2.16.1
 
 ## 目录结构
 
@@ -15,17 +20,64 @@
 │   └── start.sh        # 生产环境启动脚本
 ├── server/             # 服务端逻辑
 │   ├── routes/         # API 路由
+│   │   ├── index.ts    # 路由总入口
+│   │   └── whois.ts    # WHOIS 查询 API
 │   ├── server.ts       # Express 服务入口
 │   └── vite.ts         # Vite 中间件集成
 ├── src/                # 前端源码
 │   ├── index.css       # 全局样式
-│   ├── index.ts        # 客户端入口
-│   └── main.ts         # 主逻辑
+│   └── main.ts         # WHOIS 查询界面
 ├── index.html          # 入口 HTML
 ├── package.json        # 项目依赖管理
 ├── tsconfig.json       # TypeScript 配置
 └── vite.config.ts      # Vite 配置
 ```
+
+## API 接口
+
+### WHOIS 查询
+
+**GET** `/api/whois?domain=example.com`
+
+查询域名的 WHOIS 信息。
+
+**POST** `/api/whois`
+
+通过请求体查询，支持高级选项。
+
+请求体:
+```json
+{
+  "domain": "example.com",
+  "server": "whois.example.com",  // 可选：指定 WHOIS 服务器
+  "follow": 2,                     // 可选：跟随重定向次数
+  "timeout": 10000,               // 可选：超时时间(ms)
+  "port": 43                      // 可选：WHOIS 端口
+}
+```
+
+响应格式:
+```json
+{
+  "success": true,
+  "domain": "google.com",
+  "raw": "...原始 WHOIS 文本...",
+  "parsed": {
+    "domain_name": "GOOGLE.COM",
+    "registrar": "MarkMonitor Inc.",
+    "creation_date": "1997-09-15T07:00:00+0000",
+    "expiration_date": "2028-09-13T07:00:00+0000",
+    "name_servers": ["NS1.GOOGLE.COM", "NS2.GOOGLE.COM"]
+  },
+  "queriedAt": "2024-01-15T10:30:00.000Z"
+}
+```
+
+### 健康检查
+
+**GET** `/api/health`
+
+返回服务状态。
 
 ## 包管理规范
 
@@ -39,6 +91,7 @@
 ## 开发规范
 
 - 使用 Tailwind CSS 进行样式开发
+- API 路由位于 `server/routes/` 目录
 
 ### 编码规范
 
