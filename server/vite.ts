@@ -5,8 +5,6 @@ import type { Application, Request, Response, NextFunction } from 'express';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
-import viteConfig from '../vite.config';
 
 const isDev = process.env.COZE_PROJECT_ENV !== 'PROD';
 
@@ -15,6 +13,10 @@ const isDev = process.env.COZE_PROJECT_ENV !== 'PROD';
  * API 路由需要在 Vite 之前注册，所以这里只处理非 API 请求
  */
 export async function setupViteMiddleware(app: Application) {
+  // 动态导入 vite，只在开发环境需要
+  const { createServer: createViteServer } = await import('vite');
+  const viteConfig = (await import('../vite.config')).default;
+  
   const vite = await createViteServer({
     ...viteConfig,
     server: {
@@ -22,7 +24,6 @@ export async function setupViteMiddleware(app: Application) {
       middlewareMode: true,
     },
     appType: 'spa',
-    // plugins from vite.config.ts are already included via spread
   });
 
   // 使用 Vite middleware 处理非 API 请求
