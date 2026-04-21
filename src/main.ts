@@ -194,28 +194,17 @@ async function initApiKey(): Promise<void> {
 
 function renderHistory(): void {
   const historyList = document.getElementById('history-list');
-  const historySection = document.getElementById('history-section');
+  const historyDropdown = document.getElementById('history-dropdown');
   const historyCount = document.getElementById('history-count');
-  const clearBtn = document.getElementById('clear-history-btn');
 
-  if (!historyList || !historySection) return;
+  if (!historyList || !historyDropdown || !historyCount) return;
 
   const history = getHistory();
+  historyCount.textContent = String(history.length);
 
   if (history.length === 0) {
-    historySection.classList.add('hidden');
+    historyDropdown.classList.add('hidden');
     return;
-  }
-
-  historySection.classList.remove('hidden');
-  if (historyCount) {
-    historyCount.textContent = String(history.length);
-  }
-  
-  // 更新清除按钮文字
-  const clearBtnText = clearBtn?.querySelector('span');
-  if (clearBtnText) {
-    clearBtnText.textContent = t('clearHistory');
   }
 
   const locale = getLocale();
@@ -229,17 +218,17 @@ function renderHistory(): void {
     });
 
     return `
-      <div class="history-item flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group">
-        <div class="flex-1 min-w-0 cursor-pointer" onclick="handleHistoryClick('${escapeHtml(item.domain)}')">
-          <div class="flex items-center gap-2">
-            <div class="w-1.5 h-1.5 rounded-full ${item.success ? 'bg-green-500' : 'bg-red-500'}"></div>
-            <span class="text-sm text-gray-800 truncate">${escapeHtml(item.domain)}</span>
-          </div>
-          <div class="text-xs text-gray-400 mt-0.5 ml-3.5">${timeStr}</div>
+      <div class="history-item flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 transition-colors group border-b border-gray-50 last:border-b-0">
+        <div class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer" onclick="handleHistoryClick('${escapeHtml(item.domain)}')">
+          <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="text-sm text-gray-700 truncate">${escapeHtml(item.domain)}</span>
+          <span class="text-xs text-gray-400 flex-shrink-0">${timeStr}</span>
         </div>
         <button
-          onclick="handleDeleteHistory('${escapeHtml(item.domain)}')"
-          class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors ml-2 opacity-0 group-hover:opacity-100"
+          onclick="event.stopPropagation(); handleDeleteHistory('${escapeHtml(item.domain)}')"
+          class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100"
           title="${t('delete')}"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,6 +238,23 @@ function renderHistory(): void {
       </div>
     `;
   }).join('');
+}
+
+// 显示/隐藏历史下拉
+function showHistoryDropdown(): void {
+  const history = getHistory();
+  const historyDropdown = document.getElementById('history-dropdown');
+  if (!historyDropdown || history.length === 0) return;
+  
+  renderHistory();
+  historyDropdown.classList.remove('hidden');
+}
+
+function hideHistoryDropdown(): void {
+  const historyDropdown = document.getElementById('history-dropdown');
+  if (historyDropdown) {
+    historyDropdown.classList.add('hidden');
+  }
 }
 
 // ========== 主应用初始化 ==========
@@ -325,10 +331,16 @@ export async function initApp(): Promise<void> {
                   name="domain"
                   placeholder="${t('searchPlaceholder')}"
                   autocomplete="off"
-                  list="history-suggestions"
                   class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-base sm:text-lg shadow-sm"
                 />
-                <datalist id="history-suggestions"></datalist>
+                <!-- History Dropdown -->
+                <div id="history-dropdown" class="hidden absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50">
+                    <span class="text-xs text-gray-500">${t('searchHistory')} <span id="history-count" class="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">0</span></span>
+                    <button type="button" onclick="handleClearHistory()" class="text-xs text-gray-400 hover:text-red-500 transition-colors">${t('clearHistory')}</button>
+                  </div>
+                  <div id="history-list" class="max-h-64 overflow-y-auto"></div>
+                </div>
               </div>
               <button
                 type="submit"
@@ -342,20 +354,6 @@ export async function initApp(): Promise<void> {
               </button>
             </form>
           </div>
-        </div>
-
-        <!-- History Section -->
-        <div id="history-section" class="mb-6 sm:mb-8 hidden">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-medium text-gray-600 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              ${t('searchHistory')}
-              <span id="history-count" class="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">0</span>
-            </h3>
-          </div>
-          <div id="history-list" class="space-y-2"></div>
         </div>
 
         <!-- Results Section -->
@@ -442,9 +440,9 @@ export async function initApp(): Promise<void> {
   // Initialize
   await initApiKey();
   initFormHandling();
+  initHistoryDropdown();
   loadSiteSettings();
   renderHistory();
-  updateDatalist();
 
   // 绑定全局函数
   (window as unknown as Record<string, unknown>).removeFromHistory = undefined;
@@ -458,6 +456,45 @@ export async function initApp(): Promise<void> {
   (window as unknown as { handleHistoryClick: (domain: string) => void }).handleHistoryClick = handleHistoryClick;
 }
 
+// 初始化历史下拉事件
+function initHistoryDropdown(): void {
+  const domainInput = document.getElementById('domain-input') as HTMLInputElement;
+  const historyDropdown = document.getElementById('history-dropdown');
+
+  if (!domainInput || !historyDropdown) return;
+
+  // 输入时显示下拉
+  domainInput.addEventListener('focus', () => {
+    showHistoryDropdown();
+  });
+
+  domainInput.addEventListener('input', () => {
+    showHistoryDropdown();
+  });
+
+  // 点击其他地方隐藏下拉
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!domainInput.contains(target) && !historyDropdown.contains(target)) {
+      hideHistoryDropdown();
+    }
+  });
+
+  // 按 ESC 隐藏下拉
+  domainInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      hideHistoryDropdown();
+    }
+  });
+
+  // 选择历史后隐藏下拉
+  domainInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      hideHistoryDropdown();
+    }
+  });
+}
+
 // 点击历史记录条目
 function handleHistoryClick(domain: string): void {
   const domainInput = document.getElementById('domain-input') as HTMLInputElement;
@@ -465,17 +502,6 @@ function handleHistoryClick(domain: string): void {
     domainInput.value = domain;
     domainInput.dispatchEvent(new Event('submit'));
   }
-}
-
-// 更新下拉建议列表
-function updateDatalist(): void {
-  const datalist = document.getElementById('history-suggestions') as HTMLDataListElement;
-  if (!datalist) return;
-
-  const history = getHistory();
-  datalist.innerHTML = history.slice(0, 10).map(item =>
-    `<option value="${escapeHtml(item.domain)}">`
-  ).join('');
 }
 
 // ========== 表单处理 ==========
@@ -592,7 +618,6 @@ function initFormHandling(): void {
       searchIcon.classList.remove('animate-spin');
       searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
       searchText.textContent = t('query');
-      updateDatalist();
       renderHistory();
     }
   });
