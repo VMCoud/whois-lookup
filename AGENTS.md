@@ -2,7 +2,7 @@
 
 ## 项目描述
 
-WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois) 的域名查询服务。
+WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois) 的域名查询服务，支持 API Key 认证。
 
 ## 技术栈
 
@@ -19,31 +19,45 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 │   ├── prepare.sh      # 预处理脚本
 │   └── start.sh        # 生产环境启动脚本
 ├── server/             # 服务端逻辑
+│   ├── middleware/     # 中间件
+│   │   └── auth.ts    # API Key 认证中间件
 │   ├── routes/         # API 路由
-│   │   ├── index.ts    # 路由总入口
-│   │   └── whois.ts    # WHOIS 查询 API
-│   ├── server.ts       # Express 服务入口
-│   └── vite.ts         # Vite 中间件集成
-├── src/                # 前端源码
-│   ├── index.css       # 全局样式
-│   └── main.ts         # WHOIS 查询界面
-├── index.html          # 入口 HTML
-├── package.json        # 项目依赖管理
-├── tsconfig.json       # TypeScript 配置
-└── vite.config.ts      # Vite 配置
+│   │   ├── index.ts   # 路由总入口
+│   │   ├── keys.ts    # API Key 管理接口
+│   │   └── whois.ts   # WHOIS 查询 API
+│   ├── server.ts      # Express 服务入口
+│   └── vite.ts        # Vite 中间件集成
+├── src/               # 前端源码
+│   ├── index.css      # 全局样式
+│   └── main.ts        # WHOIS 查询界面
+├── index.html         # 入口 HTML
+├── package.json       # 项目依赖管理
+├── tsconfig.json      # TypeScript 配置
+└── vite.config.ts     # Vite 配置
 ```
 
 ## API 接口
 
-### WHOIS 查询
+### WHOIS 查询（需要 API Key）
 
 **GET** `/api/whois?domain=example.com`
 
 查询域名的 WHOIS 信息。
 
+**Headers:**
+```
+X-API-Key: YOUR_API_KEY
+```
+
 **POST** `/api/whois`
 
 通过请求体查询，支持高级选项。
+
+请求头:
+```
+X-API-Key: YOUR_API_KEY
+Content-Type: application/json
+```
 
 请求体:
 ```json
@@ -73,11 +87,88 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 }
 ```
 
+### API Key 管理
+
+#### 获取默认 Key
+
+**GET** `/api/keys/init`
+
+首次访问时自动创建默认 API Key。
+
+响应:
+```json
+{
+  "success": true,
+  "key": "64字符的hex密钥",
+  "keyPrefix": "前8位"
+}
+```
+
+#### 创建新 Key
+
+**POST** `/api/keys`
+
+创建新的 API Key。
+
+请求体:
+```json
+{
+  "name": "My Application"
+}
+```
+
+响应:
+```json
+{
+  "success": true,
+  "data": {
+    "name": "My Application",
+    "key": "完整密钥（仅返回一次）",
+    "keyPrefix": "前8位"
+  }
+}
+```
+
+#### 获取所有 Keys
+
+**GET** `/api/keys`
+
+列出所有已创建的 Keys（不包含完整密钥）。
+
+响应:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "keyPrefix": "a1b2c3d4",
+      "name": "Default Key",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "lastUsed": "2024-01-15T11:00:00.000Z",
+      "requestCount": 42
+    }
+  ]
+}
+```
+
+#### 删除 Key
+
+**DELETE** `/api/keys/:keyPrefix`
+
+删除指定的 API Key。
+
 ### 健康检查
 
 **GET** `/api/health`
 
 返回服务状态。
+
+## 认证说明
+
+- WHOIS 查询接口需要 API Key 认证
+- API Key 通过请求头 `X-API-Key` 或查询参数 `apiKey` 传递
+- 建议使用请求头方式，避免 Key 泄露在日志中
+- 可创建多个 Key 用于不同应用场景
 
 ## 包管理规范
 
@@ -92,6 +183,7 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 
 - 使用 Tailwind CSS 进行样式开发
 - API 路由位于 `server/routes/` 目录
+- 中间件位于 `server/middleware/` 目录
 
 ### 编码规范
 

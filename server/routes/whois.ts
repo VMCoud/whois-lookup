@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { lookup as whoisLookup } from 'whois';
+import { optionalApiKeyAuth } from '../middleware/auth';
 
 const router = Router();
+
+// 应用可选的 API Key 认证（用于追踪使用情况）
+router.use(optionalApiKeyAuth);
 
 interface WhoisParams {
   domain: string;

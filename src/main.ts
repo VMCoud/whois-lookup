@@ -9,6 +9,21 @@ interface WhoisResponse {
   queriedAt?: string;
 }
 
+interface ApiKeyResponse {
+  success: boolean;
+  key?: string;
+  keyPrefix?: string;
+  message?: string;
+  notice?: string;
+  data?: Array<{
+    keyPrefix: string;
+    name: string;
+    createdAt: string;
+    lastUsed: string | null;
+    requestCount: number;
+  }>;
+}
+
 export function initApp(): void {
   const app = document.getElementById('app');
 
@@ -16,6 +31,9 @@ export function initApp(): void {
     console.error('App element not found');
     return;
   }
+
+  // API Key 存储在 localStorage
+  let apiKey = localStorage.getItem('whois_api_key') || '';
 
   app.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -34,14 +52,94 @@ export function initApp(): void {
             </div>
           </div>
           <div class="flex items-center gap-4">
-            <a href="/api/health" class="text-sm text-slate-400 hover:text-white transition-colors">状态</a>
-            <a href="https://github.com/netcccyun/php-whois" target="_blank" class="text-sm text-slate-400 hover:text-white transition-colors">源码</a>
+            <button id="api-key-btn" class="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+              </svg>
+              <span id="api-key-status">${apiKey ? '已设置 Key' : '设置 API Key'}</span>
+            </button>
           </div>
         </div>
       </header>
 
       <!-- Main Content -->
       <main class="max-w-6xl mx-auto px-6 py-12">
+        <!-- API Key Modal -->
+        <div id="api-key-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-lg">
+            <div class="p-6 border-b border-slate-700">
+              <h3 class="text-lg font-semibold">API Key 管理</h3>
+              <p class="text-sm text-slate-400 mt-1">管理您的访问密钥</p>
+            </div>
+            <div class="p-6 space-y-6">
+              <!-- Current Key -->
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">当前 API Key</label>
+                <div class="flex gap-2">
+                  <input 
+                    type="password" 
+                    id="current-key-input"
+                    value="${apiKey}"
+                    placeholder="输入或粘贴您的 API Key"
+                    class="flex-1 px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <button id="save-key-btn" class="px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors">
+                    保存
+                  </button>
+                </div>
+              </div>
+
+              <!-- Create New Key -->
+              <div class="border-t border-slate-700 pt-6">
+                <h4 class="text-sm font-medium text-slate-300 mb-3">创建新 Key</h4>
+                <div class="flex gap-2 mb-3">
+                  <input 
+                    type="text" 
+                    id="new-key-name"
+                    placeholder="输入 Key 名称"
+                    class="flex-1 px-4 py-3 rounded-lg bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <button id="create-key-btn" class="px-4 py-3 rounded-lg bg-green-600 hover:bg-green-500 text-white font-medium transition-colors">
+                    创建
+                  </button>
+                </div>
+                <div id="new-key-display" class="hidden">
+                  <label class="block text-xs text-slate-400 mb-2">新创建的 Key（请妥善保管，只显示一次）</label>
+                  <div class="flex gap-2">
+                    <input 
+                      type="text" 
+                      id="new-key-value"
+                      readonly
+                      class="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-green-500/50 text-green-400 font-mono text-sm"
+                    />
+                    <button id="copy-new-key-btn" class="px-4 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors">
+                      复制
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- List Keys -->
+              <div class="border-t border-slate-700 pt-6">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-sm font-medium text-slate-300">已创建的 Keys</h4>
+                  <button id="refresh-keys-btn" class="text-xs text-slate-400 hover:text-white transition-colors">
+                    刷新
+                  </button>
+                </div>
+                <div id="keys-list" class="space-y-2 max-h-48 overflow-y-auto">
+                  <p class="text-sm text-slate-500">加载中...</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end">
+              <button id="close-modal-btn" class="px-6 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors">
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Search Section -->
         <div class="text-center mb-12">
           <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
@@ -144,10 +242,11 @@ export function initApp(): void {
                 <span class="px-2 py-1 rounded text-xs font-semibold bg-green-600/20 text-green-400">GET</span>
                 <code class="text-sm text-slate-300">/api/whois?domain=example.com</code>
               </div>
-              <p class="text-sm text-slate-400 mb-4">通过 URL 参数查询域名</p>
+              <p class="text-sm text-slate-400 mb-4">通过 URL 参数查询域名（需要 API Key）</p>
               <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono">
                 <span class="text-slate-500"># 示例</span><br/>
-                <span class="text-cyan-400">curl</span> <span class="text-amber-400">"https://${window.location.host}/api/whois?domain=google.com"</span>
+                <span class="text-cyan-400">curl</span> <span class="text-amber-400">"https://${window.location.host}/api/whois?domain=google.com"</span><br/>
+                <span class="text-blue-400">-H</span> <span class="text-amber-400">"X-API-Key: YOUR_API_KEY"</span>
               </div>
             </div>
 
@@ -161,8 +260,35 @@ export function initApp(): void {
               <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono overflow-x-auto">
                 <span class="text-slate-500"># 示例</span><br/>
                 <span class="text-cyan-400">curl</span> <span class="text-blue-400">-X POST</span> <span class="text-amber-400">"https://${window.location.host}/api/whois"</span><br/>
+                <span class="text-blue-400">-H</span> <span class="text-amber-400">"X-API-Key: YOUR_API_KEY"</span><br/>
                 <span class="text-blue-400">-H</span> <span class="text-amber-400">"Content-Type: application/json"</span><br/>
                 <span class="text-blue-400">-d</span> <span class="text-green-400">'{"domain": "google.com", "timeout": 10000}'</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Management Endpoints -->
+          <div class="mt-6 grid md:grid-cols-2 gap-6">
+            <!-- Init Key -->
+            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="px-2 py-1 rounded text-xs font-semibold bg-yellow-600/20 text-yellow-400">GET</span>
+                <code class="text-sm text-slate-300">/api/keys/init</code>
+              </div>
+              <p class="text-sm text-slate-400">获取默认 API Key（首次使用时自动创建）</p>
+            </div>
+
+            <!-- Create Key -->
+            <div class="bg-slate-800/30 rounded-xl border border-slate-700/50 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="px-2 py-1 rounded text-xs font-semibold bg-purple-600/20 text-purple-400">POST</span>
+                <code class="text-sm text-slate-300">/api/keys</code>
+              </div>
+              <p class="text-sm text-slate-400">创建新的 API Key</p>
+              <div class="bg-slate-900/50 rounded-lg p-3 text-xs font-mono mt-3">
+                <span class="text-cyan-400">curl</span> <span class="text-blue-400">-X POST</span> <span class="text-amber-400">"https://${window.location.host}/api/keys"</span><br/>
+                <span class="text-blue-400">-H</span> <span class="text-amber-400">"Content-Type: application/json"</span><br/>
+                <span class="text-blue-400">-d</span> <span class="text-green-400">'{"name": "My App"}'</span>
               </div>
             </div>
           </div>
@@ -177,10 +303,7 @@ export function initApp(): void {
   <span class="text-green-400">"raw"</span>: <span class="text-amber-400">"...原始 WHOIS 文本..."</span>,
   <span class="text-green-400">"parsed"</span>: {
     <span class="text-green-400">"domain_name"</span>: <span class="text-amber-400">"GOOGLE.COM"</span>,
-    <span class="text-green-400">"registrar"</span>: <span class="text-amber-400">"MarkMonitor Inc."</span>,
-    <span class="text-green-400">"creation_date"</span>: <span class="text-amber-400">"1997-09-15T00:00:00Z"</span>,
-    <span class="text-green-400">"expiration_date"</span>: <span class="text-amber-400">"2028-09-14T00:00:00Z"</span>,
-    <span class="text-green-400">"name_servers"</span>: <span class="text-amber-400">["NS1.GOOGLE.COM", "NS2.GOOGLE.COM"]</span>
+    <span class="text-green-400">"registrar"</span>: <span class="text-amber-400">"MarkMonitor Inc."</span>
   },
   <span class="text-green-400">"queriedAt"</span>: <span class="text-amber-400">"2024-01-15T10:30:00.000Z"</span>
 }</pre>
@@ -198,8 +321,144 @@ export function initApp(): void {
     </div>
   `;
 
-  // Initialize form handling
+  // Initialize all event handlers
+  initModalHandlers();
   initFormHandling();
+}
+
+function initModalHandlers(): void {
+  const modal = document.getElementById('api-key-modal')!;
+  const apiKeyBtn = document.getElementById('api-key-btn')!;
+  const closeModalBtn = document.getElementById('close-modal-btn')!;
+  const currentKeyInput = document.getElementById('current-key-input') as HTMLInputElement;
+  const saveKeyBtn = document.getElementById('save-key-btn')!;
+  const newKeyName = document.getElementById('new-key-name') as HTMLInputElement;
+  const createKeyBtn = document.getElementById('create-key-btn')!;
+  const newKeyDisplay = document.getElementById('new-key-display')!;
+  const newKeyValue = document.getElementById('new-key-value') as HTMLInputElement;
+  const copyNewKeyBtn = document.getElementById('copy-new-key-btn')!;
+  const refreshKeysBtn = document.getElementById('refresh-keys-btn')!;
+  const keysList = document.getElementById('keys-list')!;
+  const apiKeyStatus = document.getElementById('api-key-status')!;
+
+  // Open modal
+  apiKeyBtn.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    loadKeysList();
+  });
+
+  // Close modal
+  closeModalBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Save current key
+  saveKeyBtn.addEventListener('click', () => {
+    const key = currentKeyInput.value.trim();
+    if (key) {
+      localStorage.setItem('whois_api_key', key);
+      apiKey = key;
+      apiKeyStatus.textContent = '已设置 Key';
+      alert('API Key 已保存');
+    }
+  });
+
+  // Create new key
+  createKeyBtn.addEventListener('click', async () => {
+    const name = newKeyName.value.trim();
+    if (!name) {
+      alert('请输入 Key 名称');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const data: ApiKeyResponse = await response.json();
+
+      if (data.success && data.data?.key) {
+        newKeyDisplay.classList.remove('hidden');
+        newKeyValue.value = data.data.key;
+        newKeyName.value = '';
+        loadKeysList();
+      } else {
+        alert(data.error || '创建失败');
+      }
+    } catch (error) {
+      alert('创建失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    }
+  });
+
+  // Copy new key
+  copyNewKeyBtn.addEventListener('click', async () => {
+    const key = newKeyValue.value;
+    await navigator.clipboard.writeText(key);
+    alert('已复制到剪贴板');
+  });
+
+  // Refresh keys list
+  refreshKeysBtn.addEventListener('click', loadKeysList);
+
+  // Load keys list
+  async function loadKeysList(): Promise<void> {
+    try {
+      const response = await fetch('/api/keys');
+      const data: ApiKeyResponse = await response.json();
+
+      if (data.success && data.data) {
+        if (data.data.length === 0) {
+          keysList.innerHTML = '<p class="text-sm text-slate-500">暂无已创建的 Keys</p>';
+        } else {
+          keysList.innerHTML = data.data.map(k => `
+            <div class="flex items-center justify-between bg-slate-900/30 rounded-lg px-4 py-3">
+              <div>
+                <div class="text-sm font-medium text-white">${escapeHtml(k.name)}</div>
+                <div class="text-xs text-slate-500 font-mono">${k.keyPrefix}***... | 使用 ${k.requestCount} 次</div>
+              </div>
+              <button class="delete-key-btn text-xs text-red-400 hover:text-red-300 transition-colors" data-key="${k.keyPrefix}">
+                删除
+              </button>
+            </div>
+          `).join('');
+
+          // Add delete handlers
+          keysList.querySelectorAll('.delete-key-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const keyPrefix = (e.target as HTMLElement).dataset.key;
+              if (!keyPrefix) return;
+
+              if (!confirm('确定要删除这个 API Key 吗？')) return;
+
+              try {
+                const response = await fetch(`/api/keys/${keyPrefix}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                  loadKeysList();
+                } else {
+                  alert(result.error || '删除失败');
+                }
+              } catch (error) {
+                alert('删除失败: ' + (error instanceof Error ? error.message : '未知错误'));
+              }
+            });
+          });
+        }
+      }
+    } catch (error) {
+      keysList.innerHTML = '<p class="text-sm text-red-400">加载失败</p>';
+    }
+  }
 }
 
 function initFormHandling(): void {
@@ -225,6 +484,13 @@ function initFormHandling(): void {
       return;
     }
 
+    // Check API key
+    if (!apiKey) {
+      alert('请先设置 API Key');
+      document.getElementById('api-key-btn')?.click();
+      return;
+    }
+
     // Show loading state
     resultsContainer.classList.remove('hidden');
     loadingState.classList.remove('hidden');
@@ -238,7 +504,11 @@ function initFormHandling(): void {
     searchText.textContent = '查询中...';
 
     try {
-      const response = await fetch(`/api/whois?domain=${encodeURIComponent(domain)}`);
+      const response = await fetch(`/api/whois?domain=${encodeURIComponent(domain)}`, {
+        headers: {
+          'X-API-Key': apiKey,
+        },
+      });
       const data: WhoisResponse = await response.json();
 
       loadingState.classList.add('hidden');
@@ -246,6 +516,13 @@ function initFormHandling(): void {
       if (!data.success) {
         errorState.classList.remove('hidden');
         errorMessage.textContent = data.error || '未知错误';
+
+        // 如果是未授权，清除 key 并提示重新设置
+        if (response.status === 401) {
+          localStorage.removeItem('whois_api_key');
+          apiKey = '';
+          document.getElementById('api-key-status')!.textContent = '设置 API Key';
+        }
       } else {
         successState.classList.remove('hidden');
         displayResults(data);
@@ -289,7 +566,6 @@ function displayResults(data: WhoisResponse): void {
       { key: 'registrar', label: '注册商' },
       { key: 'creation_date', label: '创建日期' },
       { key: 'created_date', label: '创建日期' },
-      { key: 'creation_date', label: '创建日期' },
       { key: 'expiration_date', label: '过期日期' },
       { key: 'expiry_date', label: '过期日期' },
       { key: 'updated_date', label: '更新日期' },
