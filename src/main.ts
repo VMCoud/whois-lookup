@@ -408,6 +408,7 @@ function displayResults(data: WhoisResponse): void {
       ['registrant_name', '注册人姓名'],
       ['registrant_organization', '注册组织'],
       ['registrant_country', '注册国家'],
+      ['registrant_email', '注册人邮箱'],
     ];
 
     const hasRegistrant = registrantFields.some(([key]) => parsed[key]);

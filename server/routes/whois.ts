@@ -122,6 +122,38 @@ function parseWhoisText(text: string): Record<string, string | string[]> {
   const parsed: Record<string, string | string[]> = {};
   const lines = text.split('\n');
 
+  // 字段名映射表（原始字段名 → 标准化字段名）
+  const fieldMapping: Record<string, string> = {
+    'registrant': 'registrant_name',
+    'registrant_name': 'registrant_name',
+    'registrant_organization': 'registrant_organization',
+    'registrant_country': 'registrant_country',
+    'registrant_contact_email': 'registrant_email',
+    'admin': 'admin_name',
+    'admin_name': 'admin_name',
+    'admin_contact_email': 'admin_email',
+    'tech': 'tech_name',
+    'tech_name': 'tech_name',
+    'tech_contact_email': 'tech_email',
+    'billing': 'billing_name',
+    'billing_contact_email': 'billing_email',
+    'domain_name': 'domain_name',
+    'roid': 'roid',
+    'domain_status': 'domain_status',
+    'registrar': 'registrar',
+    'sponsoring_registrar': 'registrar',
+    'name_server': 'name_server',
+    'nameserver': 'name_server',
+    'registration_time': 'creation_date',
+    'created_date': 'creation_date',
+    'creation_date': 'creation_date',
+    'expiration_time': 'expiration_date',
+    'expiry_date': 'expiration_date',
+    'expiration_date': 'expiration_date',
+    'updated_date': 'updated_date',
+    'dnssec': 'dnssec',
+  };
+
   for (const line of lines) {
     // 跳过空行和分隔线
     if (!line.trim() || line.startsWith('=') || line.startsWith('%')) {
@@ -131,11 +163,18 @@ function parseWhoisText(text: string): Record<string, string | string[]> {
     // 匹配 Key: Value 格式
     const match = line.match(/^([^\s:]+(?:\s+[^\s:]+)*):\s*(.*)$/);
     if (match) {
-      const key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
+      let key = match[1].trim().toLowerCase().replace(/\s+/g, '_');
       const value = match[2].trim();
 
-      // 跳过联系方式等隐私信息
-      if (['e-mail', 'email', 'phone', 'fax'].some(k => key.includes(k))) {
+      // 应用字段名映射
+      const mappedKey = fieldMapping[key] || key;
+      key = mappedKey;
+
+      // 跳过通用联系方式（但保留特定实体的联系方式）
+      // 只跳过顶级的 phone/fax，不跳过 registrant_contact_email 等
+      if (['phone', 'fax'].includes(key) || 
+          (key === 'e-mail' || key === 'email')) {
+        // 这些是通用的联系方式，跳过
         continue;
       }
 
