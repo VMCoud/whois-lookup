@@ -26,14 +26,15 @@ export async function setupViteMiddleware(app: Application) {
     // plugins from vite.config.ts are already included via spread
   });
 
-  const adminPath = getAdminPath();
-
   // 使用 Vite middleware 处理非 API 请求
   app.use((req: Request, res: Response, next: NextFunction) => {
     // 跳过 API 请求，让 Express 路由处理
     if (req.url.startsWith('/api/')) {
       return next('router');
     }
+
+    // 动态获取当前后台路径（支持运行时修改）
+    const adminPath = getAdminPath();
 
     // 处理自定义后台路径
     if (req.url === `/${adminPath}` || req.url === `/${adminPath}.html`) {
@@ -46,7 +47,7 @@ export async function setupViteMiddleware(app: Application) {
     vite.middlewares(req, res, next);
   });
 
-  console.log(`🚀 Vite dev server initialized (admin path: /${adminPath})`);
+  console.log(`🚀 Vite dev server initialized (admin path: dynamic)`);
 }
 
 /**
