@@ -2,6 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 export interface SiteSettings {
   // 网站基本信息
@@ -27,6 +28,26 @@ export interface SiteSettings {
   // 其他设置
   customCss: string;
   customJs: string;
+
+  // 后台设置
+  adminUsername: string;
+  adminPasswordHash: string; // 密码使用 SHA256 哈希存储
+  adminPath: string; // 自定义后台路径
+}
+
+export interface AdminCredentials {
+  username: string;
+  password: string;
+}
+
+// 密码哈希函数
+export function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// 验证密码
+export function validatePassword(password: string, hash: string): boolean {
+  return hashPassword(password) === hash;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -48,6 +69,11 @@ const DEFAULT_SETTINGS: SiteSettings = {
   
   customCss: '',
   customJs: '',
+
+  // 默认后台设置（可通过环境变量覆盖）
+  adminUsername: 'admin',
+  adminPasswordHash: hashPassword('admin123'),
+  adminPath: 'admin',
 };
 
 const SETTINGS_FILE = path.join(process.cwd(), 'data', 'settings.json');
@@ -57,6 +83,36 @@ function ensureDataDir(): void {
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
+}
+
+// 获取管理员认证信息（环境变量优先）
+export function getAdminAuth(): { username: string; passwordHash: string; adminPath: string } {
+  const settings = getSettings();
+  return {
+    username: process.env.ADMIN_USERNAME || settings.adminUsername,
+    passwordHash: process.env.ADMIN_PASSWORD ? hashPassword(process.env.ADMIN_PASSWORD) : settings.adminPasswordHash,
+    adminPath: settings.adminPath || 'admin',
+  };
+}
+
+// 更新管理员密码
+export function updateAdminPassword(newPassword: string): void {
+  saveSettings({ adminPasswordHash: hashPassword(newPassword) });
+}
+
+// 更新管理员用户名
+export function updateAdminUsername(newUsername: string): void {
+  saveSettings({ adminUsername: newUsername });
+}
+
+// 更新后台路径
+export function updateAdminPath(newPath: string): void {
+  saveSettings({ adminPath: newPath });
+}
+
+// 获取后台路径
+export function getAdminPath(): string {
+  return process.env.ADMIN_PATH || getSettings().adminPath || 'admin';
 }
 
 export function getSettings(): SiteSettings {

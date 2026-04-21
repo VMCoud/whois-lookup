@@ -20,6 +20,7 @@ WHOIS Lookup API - 封装自 [php-whois](https://github.com/netcccyun/php-whois)
 │   └── start.sh        # 生产环境启动脚本
 ├── server/             # 服务端逻辑
 │   ├── middleware/     # 中间件
+│   │   ├── admin.ts   # 后台管理员认证中间件
 │   │   ├── auth.ts    # API Key 认证中间件
 │   │   └── seo.ts     # SEO 注入中间件（生产环境）
 │   ├── plugins/       # Vite 插件
@@ -234,6 +235,14 @@ Content-Type: application/json
 - API Key 通过请求头 `X-API-Key` 或查询参数 `apiKey` 传递
 - 建议使用请求头方式，避免 Key 泄露在日志中
 - 过期的 Key 将无法使用，需要续期或重新创建
+
+## 后台管理认证
+
+- 默认用户名/密码：`admin` / `admin123`
+- 生产环境可通过环境变量覆盖：`ADMIN_USERNAME` 和 `ADMIN_PASSWORD`
+- 支持在后台设置中修改用户名和密码
+- 支持自定义后台入口路径（默认：`/admin`）
+- 密码使用 SHA256 哈希存储
 
 ## 前端功能
 

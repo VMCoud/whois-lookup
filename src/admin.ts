@@ -25,6 +25,8 @@ interface SiteSettings {
   icpNumber: string;
   customCss: string;
   customJs: string;
+  adminUsername: string;
+  adminPath: string;
 }
 
 interface ApiResponse<T> {
@@ -479,6 +481,55 @@ function renderAdminPage(app: HTMLElement): void {
               </div>
             </div>
 
+            <!-- Admin Credentials -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 sm:p-6">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                后台管理
+              </h2>
+              
+              <!-- 修改用户名 -->
+              <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">修改用户名</h3>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input type="text" id="new-username" placeholder="新用户名（至少3位）" class="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all outline-none" />
+                  <button type="button" id="update-username-btn" class="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-sm whitespace-nowrap">
+                    更新用户名
+                  </button>
+                </div>
+              </div>
+
+              <!-- 修改密码 -->
+              <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">修改密码</h3>
+                <div class="space-y-2">
+                  <input type="password" id="current-password" placeholder="当前密码" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all outline-none" />
+                  <input type="password" id="new-password" placeholder="新密码（至少6位）" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all outline-none" />
+                  <input type="password" id="confirm-password" placeholder="确认新密码" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all outline-none" />
+                  <button type="button" id="update-password-btn" class="w-full px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-sm">
+                    更新密码
+                  </button>
+                </div>
+              </div>
+
+              <!-- 自定义后台入口 -->
+              <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-3">自定义后台入口</h3>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <div class="flex-1 flex items-center">
+                    <span class="px-4 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-gray-500 text-sm">/</span>
+                    <input type="text" id="admin-path" placeholder="admin（2-32位字母数字下划线）" class="flex-1 px-4 py-3 rounded-r-xl border border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all outline-none" />
+                  </div>
+                  <button type="button" id="update-admin-path-btn" class="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-sm whitespace-nowrap">
+                    更新路径
+                  </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">修改后请使用新路径访问后台，如：/<span id="current-admin-path-display">admin</span></p>
+              </div>
+            </div>
+
             <!-- Save Button -->
             <div class="flex justify-end gap-3">
               <button type="button" id="reset-settings-btn" class="px-5 sm:px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors text-sm">
@@ -633,6 +684,118 @@ function initTabs(): void {
   tabKeys?.addEventListener('click', () => setActiveTab('keys'));
   tabSettings?.addEventListener('click', () => setActiveTab('settings'));
 
+  // 修改用户名
+  document.getElementById('update-username-btn')?.addEventListener('click', async () => {
+    const newUsername = (document.getElementById('new-username') as HTMLInputElement).value.trim();
+    
+    if (!newUsername || newUsername.length < 3) {
+      showToast('用户名长度不能少于3位', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/username', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': adminToken,
+        },
+        body: JSON.stringify({ newUsername }),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        showToast('用户名已更新');
+        (document.getElementById('new-username') as HTMLInputElement).value = '';
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  });
+
+  // 修改密码
+  document.getElementById('update-password-btn')?.addEventListener('click', async () => {
+    const currentPassword = (document.getElementById('current-password') as HTMLInputElement).value;
+    const newPassword = (document.getElementById('new-password') as HTMLInputElement).value;
+    const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement).value;
+
+    if (!currentPassword || !newPassword) {
+      showToast('请填写所有密码字段', 'error');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showToast('新密码长度不能少于6位', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast('两次输入的新密码不一致', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': adminToken,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        showToast('密码已更新');
+        (document.getElementById('current-password') as HTMLInputElement).value = '';
+        (document.getElementById('new-password') as HTMLInputElement).value = '';
+        (document.getElementById('confirm-password') as HTMLInputElement).value = '';
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  });
+
+  // 修改后台入口路径
+  document.getElementById('update-admin-path-btn')?.addEventListener('click', async () => {
+    const adminPath = (document.getElementById('admin-path') as HTMLInputElement).value.trim();
+
+    if (!adminPath || adminPath.length < 2 || adminPath.length > 32) {
+      showToast('路径长度需在2-32个字符之间', 'error');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(adminPath)) {
+      showToast('路径只能包含字母、数字、下划线和连字符', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/path', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Token': adminToken,
+        },
+        body: JSON.stringify({ adminPath }),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        showToast('后台入口路径已更新，请使用新路径访问', 'success', 5000);
+        (document.getElementById('admin-path') as HTMLInputElement).value = '';
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  });
+
   // SEO 开关
   document.getElementById('enable-seo')?.addEventListener('change', (e) => {
     const target = e.target as HTMLInputElement;
@@ -696,6 +859,12 @@ async function loadSettings(): Promise<void> {
       
       (document.getElementById('custom-css') as HTMLTextAreaElement).value = s.customCss || '';
       (document.getElementById('custom-js') as HTMLTextAreaElement).value = s.customJs || '';
+
+      // 显示当前后台入口路径
+      const adminPathDisplay = document.getElementById('current-admin-path-display');
+      if (adminPathDisplay) {
+        adminPathDisplay.textContent = s.adminPath || 'admin';
+      }
 
       // 更新开关状态
       const seoFields = document.getElementById('seo-fields');
