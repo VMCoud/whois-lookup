@@ -262,7 +262,7 @@ function renderHistory(): void {
 
 // ========== 主应用初始化 ==========
 
-export function initApp(): void {
+export async function initApp(): Promise<void> {
   const app = document.getElementById('app');
 
   if (!app) {
@@ -442,8 +442,8 @@ export function initApp(): void {
     </div>
   `;
 
-  // Initialize
-  initApiKey();
+  // Initialize (等待 API Key 初始化完成)
+  await initApiKey();
   initFormHandling();
   loadSiteSettings();
   renderHistory();
