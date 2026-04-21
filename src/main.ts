@@ -484,12 +484,122 @@ function initHistoryDropdown(): void {
   });
 }
 
-// 点击历史记录条目
+// 点击历史记录条目 - 立即查询
 function handleHistoryClick(domain: string): void {
+  // 直接触发查询
+  performQuery(domain);
+}
+
+// 执行查询（提取为独立函数供多处调用）
+async function performQuery(domain: string): Promise<void> {
   const domainInput = document.getElementById('domain-input') as HTMLInputElement;
+  const searchBtn = document.getElementById('search-btn') as HTMLButtonElement;
+  const searchIcon = document.getElementById('search-icon') as SVGElement;
+  const searchText = document.getElementById('search-text') as HTMLSpanElement;
+  const resultsContainer = document.getElementById('results-container')!;
+  const cacheNotice = document.getElementById('cache-notice')!;
+  const loadingState = document.getElementById('loading-state')!;
+  const errorState = document.getElementById('error-state')!;
+  const successState = document.getElementById('success-state')!;
+  const errorMessage = document.getElementById('error-message')!;
+
+  const cleanDomain = domain.trim().toLowerCase();
+
+  // 更新输入框
   if (domainInput) {
-    domainInput.value = domain;
-    domainInput.dispatchEvent(new Event('submit'));
+    domainInput.value = cleanDomain;
+  }
+
+  // 隐藏下拉
+  hideHistoryDropdown();
+
+  // 显示加载状态
+  resultsContainer.classList.remove('hidden');
+  cacheNotice.classList.add('hidden');
+  loadingState.classList.remove('hidden');
+  errorState.classList.add('hidden');
+  successState.classList.add('hidden');
+
+  // 禁用按钮
+  searchBtn.disabled = true;
+  searchIcon.innerHTML = `<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>`;
+  searchIcon.classList.add('animate-spin');
+  searchText.textContent = t('querying');
+
+  // 确保有 API Key
+  if (!apiKey) {
+    try {
+      const keyResponse = await fetch('/api/keys/init');
+      const keyData = await keyResponse.json();
+      if (keyData.success && keyData.key) {
+        apiKey = keyData.key;
+        localStorage.setItem('whois_api_key', apiKey);
+      } else {
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        errorMessage.textContent = t('errGetApiKey');
+        searchBtn.disabled = false;
+        searchText.textContent = t('query');
+        return;
+      }
+    } catch {
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      errorMessage.textContent = t('errGetApiKey');
+      searchBtn.disabled = false;
+      searchText.textContent = t('query');
+      return;
+    }
+  }
+
+  // 检查缓存
+  const cached = getCache(cleanDomain);
+  if (cached) {
+    loadingState.classList.add('hidden');
+    successState.classList.remove('hidden');
+    cacheNotice.classList.remove('hidden');
+    displayResults(cached.data, cached.cachedAt, cached.expiresAt);
+    searchBtn.disabled = false;
+    searchIcon.classList.remove('animate-spin');
+    searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
+    searchText.textContent = t('query');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/whois?domain=${encodeURIComponent(cleanDomain)}`, {
+      headers: { 'X-API-Key': apiKey },
+    });
+    const data: WhoisResponse = await response.json();
+
+    loadingState.classList.add('hidden');
+
+    if (!data.success) {
+      errorState.classList.remove('hidden');
+      errorMessage.textContent = data.error || t('unknownError');
+      addToHistory(cleanDomain, false);
+
+      if (response.status === 401) {
+        localStorage.removeItem('whois_api_key');
+        apiKey = '';
+      }
+    } else {
+      successState.classList.remove('hidden');
+      displayResults(data);
+      addToHistory(cleanDomain, true);
+      setCache(cleanDomain, data);
+    }
+  } catch (error) {
+    loadingState.classList.add('hidden');
+    errorState.classList.remove('hidden');
+    errorMessage.textContent = error instanceof Error ? error.message : t('networkError');
+    addToHistory(cleanDomain, false);
+  } finally {
+    searchBtn.disabled = false;
+    searchIcon.classList.remove('animate-spin');
+    searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
+    searchText.textContent = t('query');
+    renderHistory();
   }
 }
 
@@ -498,117 +608,16 @@ function handleHistoryClick(domain: string): void {
 function initFormHandling(): void {
   const form = document.getElementById('whois-form') as HTMLFormElement;
   const domainInput = document.getElementById('domain-input') as HTMLInputElement;
-  const searchBtn = document.getElementById('search-btn') as HTMLButtonElement;
-  const searchIcon = document.getElementById('search-icon') as SVGElement;
-  const searchText = document.getElementById('search-text') as HTMLSpanElement;
-
-  const resultsContainer = document.getElementById('results-container')!;
-  const cacheNotice = document.getElementById('cache-notice')!;
-  const loadingState = document.getElementById('loading-state')!;
-  const errorState = document.getElementById('error-state')!;
-  const successState = document.getElementById('success-state')!;
-  const errorMessage = document.getElementById('error-message')!;
-
-  async function ensureApiKey(): Promise<boolean> {
-    if (!apiKey) {
-      try {
-        const keyResponse = await fetch('/api/keys/init');
-        const keyData = await keyResponse.json();
-        if (keyData.success && keyData.key) {
-          apiKey = keyData.key;
-          localStorage.setItem('whois_api_key', apiKey);
-          return true;
-        }
-      } catch {
-        console.error(t('errGetApiKey'));
-        return false;
-      }
-    }
-    return !!apiKey;
-  }
 
   // 表单提交
   form.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
-
     const domain = domainInput.value.trim().toLowerCase();
     if (!domain) {
       domainInput.focus();
       return;
     }
-
-    // 显示加载状态
-    resultsContainer.classList.remove('hidden');
-    cacheNotice.classList.add('hidden');
-    loadingState.classList.remove('hidden');
-    errorState.classList.add('hidden');
-    successState.classList.add('hidden');
-
-    // 禁用按钮
-    searchBtn.disabled = true;
-    searchIcon.innerHTML = `<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>`;
-    searchIcon.classList.add('animate-spin');
-    searchText.textContent = t('querying');
-
-    const hasKey = await ensureApiKey();
-    if (!hasKey) {
-      loadingState.classList.add('hidden');
-      errorState.classList.remove('hidden');
-      errorMessage.textContent = t('errGetApiKey');
-      searchBtn.disabled = false;
-      searchText.textContent = t('query');
-      return;
-    }
-
-    // 检查缓存
-    const cached = getCache(domain);
-    if (cached) {
-      loadingState.classList.add('hidden');
-      successState.classList.remove('hidden');
-      cacheNotice.classList.remove('hidden');
-      displayResults(cached.data, cached.cachedAt, cached.expiresAt);
-      searchBtn.disabled = false;
-      searchIcon.classList.remove('animate-spin');
-      searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
-      searchText.textContent = t('query');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/whois?domain=${encodeURIComponent(domain)}`, {
-        headers: { 'X-API-Key': apiKey },
-      });
-      const data: WhoisResponse = await response.json();
-
-      loadingState.classList.add('hidden');
-
-      if (!data.success) {
-        errorState.classList.remove('hidden');
-        errorMessage.textContent = data.error || t('unknownError');
-        addToHistory(domain, false);
-
-        if (response.status === 401) {
-          localStorage.removeItem('whois_api_key');
-          apiKey = '';
-        }
-      } else {
-        successState.classList.remove('hidden');
-        displayResults(data);
-        addToHistory(domain, true);
-        setCache(domain, data);
-      }
-    } catch (error) {
-      loadingState.classList.add('hidden');
-      errorState.classList.remove('hidden');
-      errorMessage.textContent = error instanceof Error ? error.message : t('networkError');
-      addToHistory(domain, false);
-    } finally {
-      searchBtn.disabled = false;
-      searchIcon.classList.remove('animate-spin');
-      searchIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>`;
-      searchText.textContent = t('query');
-      renderHistory();
-    }
+    performQuery(domain);
   });
 
   domainInput.addEventListener('keydown', (e: KeyboardEvent) => {
